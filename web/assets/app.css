@@ -1,0 +1,64 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+main {
+  padding-bottom: 8rem;
+}
+
+@media (min-width: 992px) {
+  main {
+    padding-bottom: 6rem;
+  }
+}
+
+.player-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1040;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+  transition: opacity 200ms ease, filter 200ms ease;
+}
+
+.player-bar.inactive {
+  opacity: 0.6;
+  filter: grayscale(40%);
+}
+
+.player-meta__title {
+  font-weight: 600;
+}
+
+.player-meta__details {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.player-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.player-timeline .form-range {
+  accent-color: #0d6efd;
+}
+
+.player-volume__slider {
+  width: 140px;
+  min-width: 120px;
+}
+
+@media (max-width: 575.98px) {
+  .player-volume__slider {
+    width: 100px;
+  }
+}
+
+.table tbody tr.table-active {
+  transition: background-color 150ms ease;
+}
