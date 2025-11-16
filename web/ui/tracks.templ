@@ -1,0 +1,218 @@
+package ui
+
+import (
+  "strconv"
+
+  "github.com/lukasbarti/musixx/internal/library"
+  "github.com/lukasbarti/musixx/web/components"
+)
+
+type TrackFormData struct {
+  Title     string
+  Artist    string
+  Album     string
+  Duration  string
+  FilePath  string
+  SourceURL string
+}
+
+templ TracksPage(tracks []library.Track) {
+  @components.Layout("Musixx Library", TracksContent(tracks))
+}
+
+templ TracksContent(tracks []library.Track) {
+  <section class="d-flex flex-column gap-4">
+    <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
+      <h2 class="h4 mb-0">Library</h2>
+      <a class="btn btn-primary" href="/tracks/new">Add Track</a>
+    </div>
+    if len(tracks) == 0 {
+      <div class="card border-0 shadow-sm text-center py-5">
+        <div class="card-body">
+          <p class="mb-0 text-muted">No tracks yet. Use the Add Track button to import music.</p>
+        </div>
+      </div>
+    } else {
+      <div class="card shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Play</th>
+                <th scope="col">Title</th>
+                <th scope="col">Artist</th>
+                <th scope="col">Album</th>
+                <th scope="col">Added</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              for _, track := range tracks {
+                <tr>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-sm"
+                      data-action="play-track"
+                      data-track-id={strconv.FormatInt(track.ID, 10)}
+                      data-track-url={"/media/" + strconv.FormatInt(track.ID, 10)}
+                      data-track-title={track.Title}
+                      data-track-artist={(func() string {
+                        if track.Artist != nil {
+                          return *track.Artist
+                        }
+                        return ""
+                      }())}
+                      data-track-album={(func() string {
+                        if track.Album != nil {
+                          return *track.Album
+                        }
+                        return ""
+                      }())}
+                      data-track-duration={(func() string {
+                        if track.DurationSeconds != nil {
+                          return strconv.Itoa(*track.DurationSeconds)
+                        }
+                        return ""
+                      }())}
+                    >Play</button>
+                  </td>
+                  <td class="fw-semibold">{track.Title}</td>
+                  <td>
+                    if track.Artist != nil {
+                      {*track.Artist}
+                    } else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td>
+                    if track.Album != nil {
+                      {*track.Album}
+                    } else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td class="text-muted small">{track.CreatedAt.Format("2006-01-02")}</td>
+                  <td>
+                    <div class="d-flex justify-content-end gap-2">
+                      <a class="btn btn-outline-secondary btn-sm" href={"/tracks/" + strconv.FormatInt(track.ID, 10) + "/edit"}>Edit</a>
+                      <form method="post" action={"/tracks/" + strconv.FormatInt(track.ID, 10) + "/delete"}>
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+}
+
+templ TrackFormPage(form TrackFormData, errors []string) {
+  @components.Layout("Add Track", TrackFormContent(form, errors))
+}
+
+templ TrackFormContent(form TrackFormData, errors []string) {
+  <section class="d-flex flex-column gap-4">
+    <div>
+      <h2 class="h4 mb-1">Add Track</h2>
+      <p class="text-muted mb-0">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p>
+    </div>
+    if len(errors) > 0 {
+      <div class="alert alert-danger" role="alert">
+        <p class="fw-semibold mb-2">Unable to save track:</p>
+        <ul class="mb-0 ps-3">
+          for _, err := range errors {
+            <li>{err}</li>
+          }
+        </ul>
+      </div>
+    }
+    <form method="post" action="/tracks/new" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="title">Title *</label>
+        <input class="form-control" id="title" type="text" name="title" required value={form.Title} />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="artist">Artist</label>
+        <input class="form-control" id="artist" type="text" name="artist" value={form.Artist} />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="album">Album</label>
+        <input class="form-control" id="album" type="text" name="album" value={form.Album} />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="duration">Duration (seconds)</label>
+        <input class="form-control" id="duration" type="number" min="0" name="duration_seconds" value={form.Duration} />
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="file_path">File Path</label>
+        <input class="form-control" id="file_path" type="text" name="file_path" value={form.FilePath} placeholder="music/example.opus" />
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="source_url">Source URL</label>
+        <input class="form-control" id="source_url" type="url" name="source_url" value={form.SourceURL} placeholder="https://www.youtube.com/watch?v=..." />
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Track</button>
+        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </section>
+}
+
+templ TrackEditPage(id int64, form TrackFormData, errors []string) {
+  @components.Layout("Edit Track", TrackEditContent(id, form, errors))
+}
+
+templ TrackEditContent(id int64, form TrackFormData, errors []string) {
+  <section class="d-flex flex-column gap-4">
+    <div>
+      <h2 class="h4 mb-1">Edit Track</h2>
+      <p class="text-muted mb-0">Update the metadata associated with this track.</p>
+    </div>
+    if len(errors) > 0 {
+      <div class="alert alert-danger" role="alert">
+        <p class="fw-semibold mb-2">Unable to update track:</p>
+        <ul class="mb-0 ps-3">
+          for _, err := range errors {
+            <li>{err}</li>
+          }
+        </ul>
+      </div>
+    }
+    <form method="post" action={"/tracks/" + strconv.FormatInt(id, 10) + "/edit"} class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="edit-title">Title *</label>
+        <input class="form-control" id="edit-title" type="text" name="title" required value={form.Title} />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="edit-artist">Artist</label>
+        <input class="form-control" id="edit-artist" type="text" name="artist" value={form.Artist} />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="edit-album">Album</label>
+        <input class="form-control" id="edit-album" type="text" name="album" value={form.Album} />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="edit-duration">Duration (seconds)</label>
+        <input class="form-control" id="edit-duration" type="number" min="0" name="duration_seconds" value={form.Duration} />
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="edit-file-path">File Path</label>
+        <input class="form-control" id="edit-file-path" type="text" name="file_path" value={form.FilePath} readonly />
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="edit-source-url">Source URL</label>
+        <input class="form-control" id="edit-source-url" type="url" name="source_url" value={form.SourceURL} />
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Update Track</button>
+        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </section>
+}

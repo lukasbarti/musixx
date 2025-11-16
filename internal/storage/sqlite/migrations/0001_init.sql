@@ -1,0 +1,27 @@
+CREATE TABLE IF NOT EXISTS tracks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    album TEXT,
+    artist TEXT,
+    duration_seconds INTEGER,
+    file_path TEXT NOT NULL UNIQUE,
+    source_url TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS albums (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    artist TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS track_albums (
+    track_id INTEGER NOT NULL,
+    album_id INTEGER NOT NULL,
+    PRIMARY KEY (track_id, album_id),
+    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
+    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+);
