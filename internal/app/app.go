@@ -40,9 +40,9 @@ func New() (*App, error) {
 	return &App{store: store, httpServer: srv}, nil
 }
 
-// Run starts the Musixx application.
+// Run starts the musixx application.
 func (a *App) Run(ctx context.Context) error {
-	log.Printf("starting Musixx server on port %d", config.HTTPPort())
+	log.Printf("starting musixx server on port %d", config.HTTPPort())
 	defer func() {
 		if err := a.store.Close(); err != nil {
 			log.Printf("error closing database: %v", err)

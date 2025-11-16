@@ -15,7 +15,7 @@ import (
 func newServeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serve",
-		Short: "Start the Musixx web server",
+		Short: "Start the musixx web server",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 			defer stop()

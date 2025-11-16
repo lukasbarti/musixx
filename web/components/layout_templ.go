@@ -42,7 +42,7 @@ func Layout(title string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/assets/css/bootstrap.min.css\"><link rel=\"stylesheet\" href=\"/assets/app.css\"><script src=\"/assets/js/bootstrap.bundle.min.js\" defer></script><script src=\"/assets/app.dist.js\" defer></script></head><body class=\"bg-light\"><nav class=\"navbar navbar-light bg-white border-bottom shadow-sm\"><div class=\"container\"><a class=\"navbar-brand fw-semibold\" href=\"/\">Musixx</a></div></nav><main class=\"container my-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/assets/css/bootstrap.min.css\"><link rel=\"stylesheet\" href=\"/assets/app.css\"><script src=\"/assets/js/bootstrap.bundle.min.js\" defer></script><script src=\"/assets/app.dist.js\" defer></script></head><body class=\"bg-light\"><nav class=\"navbar navbar-light bg-white border-bottom shadow-sm\"><div class=\"container\"><a class=\"navbar-brand fw-semibold\" href=\"/\">musixx</a></div></nav><main class=\"container my-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

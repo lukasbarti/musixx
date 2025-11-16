@@ -2,7 +2,7 @@ package library
 
 import "time"
 
-// Track represents a playable audio item in the Musixx library.
+// Track represents a playable audio item in the musixx library.
 type Track struct {
 	ID              int64
 	Title           string

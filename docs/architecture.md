@@ -1,4 +1,4 @@
-# Musixx Architecture Overview
+# musixx Architecture Overview
 
 ## Top-Level Structure
 - `cmd/`: Cobra-based CLI entry points, including commands such as `serve`, `download`, `migrate`, and `config`. Commands parse CLI flags and delegate into internal services.

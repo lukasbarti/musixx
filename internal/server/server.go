@@ -21,7 +21,7 @@ import (
 	"github.com/lukasbarti/musixx/web/ui"
 )
 
-// Server wraps the HTTP listener and handlers for Musixx.
+// Server wraps the HTTP listener and handlers for musixx.
 type Server struct {
 	httpServer *http.Server
 	trackRepo  library.TrackRepository

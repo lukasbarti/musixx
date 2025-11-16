@@ -10,8 +10,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "musixx",
-	Short: "Musixx manages and plays your local music library",
-	Long:  "Musixx runs a local-first music library with a web UI for playback and management.",
+	Short: "musixx manages and plays your local music library",
+	Long:  "musixx runs a local-first music library with a web UI for playback and management.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if err := config.Load(); err != nil {
 			return fmt.Errorf("load config: %w", err)
@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Musixx CLI coming soon — web server placeholder listening on port %d.\n", config.HTTPPort())
+		fmt.Printf("musixx CLI coming soon — web server placeholder listening on port %d.\n", config.HTTPPort())
 	},
 }
 

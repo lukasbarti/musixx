@@ -1,4 +1,4 @@
-# Musixx Project Charter
+# musixx Project Charter
 
 ## Goals
 - Provide a local-only web application for playing and managing a personal music library.
