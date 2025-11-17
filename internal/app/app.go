@@ -31,7 +31,7 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("init downloader: %w", err)
 	}
 
-	srv, err := server.New(store.TrackRepository(), downloaderSvc)
+	srv, err := server.New(store.TrackRepository(), store.PlaylistRepository(), downloaderSvc)
 	if err != nil {
 		_ = store.Close()
 		return nil, fmt.Errorf("init server: %w", err)

@@ -11,12 +11,21 @@ templ PlayerBar() {
           </div>
         </div>
         <div class="col-auto">
-          <div class="player-controls d-flex gap-2">
+          <div class="player-controls d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-light" id="player-prev" aria-label="Previous" disabled>
+              <span aria-hidden="true">Prev</span>
+            </button>
             <button type="button" class="btn btn-primary" id="player-toggle" aria-label="Play" disabled>
               <span aria-hidden="true">Play</span>
             </button>
             <button type="button" class="btn btn-outline-light" id="player-stop" aria-label="Stop" disabled>
               <span aria-hidden="true">Stop</span>
+            </button>
+            <button type="button" class="btn btn-outline-light" id="player-next" aria-label="Next" disabled>
+              <span aria-hidden="true">Next</span>
+            </button>
+            <button type="button" class="btn btn-outline-light" id="queue-toggle" aria-controls="queue-panel" aria-expanded="false">
+              <span aria-hidden="true">Queue</span>
             </button>
           </div>
         </div>
@@ -36,4 +45,20 @@ templ PlayerBar() {
     </div>
     <audio id="player-audio" preload="none" aria-hidden="true"></audio>
   </div>
+  <aside id="queue-panel" class="queue-panel" aria-labelledby="queue-heading" aria-hidden="true">
+    <div class="queue-panel__header">
+      <div class="queue-panel__title-group">
+        <h2 class="queue-panel__heading h6 mb-0" id="queue-heading">Queue</h2>
+        <button type="button" class="queue-panel__close" id="queue-close" aria-label="Close queue">✕</button>
+      </div>
+      <div class="queue-panel__toolbar d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-light" id="queue-loop" aria-pressed="false">Loop</button>
+        <button type="button" class="btn btn-sm btn-outline-light" id="queue-clear">Clear</button>
+      </div>
+    </div>
+    <div class="queue-panel__body">
+      <p id="queue-empty" class="queue-panel__empty text-muted" hidden>The queue is empty. Add tracks to get started.</p>
+      <ul id="queue-list" class="queue-panel__list" aria-labelledby="queue-heading"></ul>
+    </div>
+  </aside>
 }

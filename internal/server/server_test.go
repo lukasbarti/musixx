@@ -24,6 +24,14 @@ type stubTrackRepository struct {
 	deleteFunc func(ctx context.Context, id int64) error
 }
 
+type stubPlaylistRepository struct {
+	createFunc   func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error)
+	getFunc      func(ctx context.Context, id int64) (library.Playlist, error)
+	listFunc     func(ctx context.Context) ([]library.Playlist, error)
+	deleteFunc   func(ctx context.Context, id int64) error
+	addTrackFunc func(ctx context.Context, playlistID, trackID int64) error
+}
+
 type stubDownloader struct {
 	downloadFunc func(ctx context.Context, req downloader.Request) (downloader.Result, error)
 }
@@ -36,14 +44,70 @@ func (s stubDownloader) Download(ctx context.Context, req downloader.Request) (d
 }
 
 func newServerWithRepo(repo stubTrackRepository) *Server {
+	return newServerWithRepos(repo, stubPlaylistRepository{
+		listFunc: func(ctx context.Context) ([]library.Playlist, error) {
+			return nil, nil
+		},
+		createFunc: func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+			panic("Create not implemented in stub")
+		},
+		getFunc: func(ctx context.Context, id int64) (library.Playlist, error) {
+			panic("GetByID not implemented in stub")
+		},
+		deleteFunc: func(ctx context.Context, id int64) error {
+			panic("Delete not implemented in stub")
+		},
+		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
+			panic("AddTrack not implemented in stub")
+		},
+	})
+}
+
+func newServerWithRepos(trackRepo stubTrackRepository, playlistRepo stubPlaylistRepository) *Server {
 	return &Server{
-		trackRepo: repo,
+		trackRepo:    trackRepo,
+		playlistRepo: playlistRepo,
 		downloader: stubDownloader{
 			downloadFunc: func(ctx context.Context, req downloader.Request) (downloader.Result, error) {
 				panic("unexpected downloader invocation")
 			},
 		},
 	}
+}
+
+func (s stubPlaylistRepository) Create(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+	if s.createFunc == nil {
+		panic("Create not implemented in stub")
+	}
+	return s.createFunc(ctx, params)
+}
+
+func (s stubPlaylistRepository) GetByID(ctx context.Context, id int64) (library.Playlist, error) {
+	if s.getFunc == nil {
+		panic("GetByID not implemented in stub")
+	}
+	return s.getFunc(ctx, id)
+}
+
+func (s stubPlaylistRepository) List(ctx context.Context) ([]library.Playlist, error) {
+	if s.listFunc == nil {
+		panic("List not implemented in stub")
+	}
+	return s.listFunc(ctx)
+}
+
+func (s stubPlaylistRepository) Delete(ctx context.Context, id int64) error {
+	if s.deleteFunc == nil {
+		panic("Delete not implemented in stub")
+	}
+	return s.deleteFunc(ctx, id)
+}
+
+func (s stubPlaylistRepository) AddTrack(ctx context.Context, playlistID, trackID int64) error {
+	if s.addTrackFunc == nil {
+		panic("AddTrack not implemented in stub")
+	}
+	return s.addTrackFunc(ctx, playlistID, trackID)
 }
 
 func (s stubTrackRepository) Create(ctx context.Context, params library.CreateTrackParams) (library.Track, error) {
@@ -79,6 +143,154 @@ func (s stubTrackRepository) Delete(ctx context.Context, id int64) error {
 		panic("Delete not implemented in stub")
 	}
 	return s.deleteFunc(ctx, id)
+}
+
+func TestHandlePlaylists_ListSuccess(t *testing.T) {
+	now := time.Now().UTC()
+	playlistRepo := stubPlaylistRepository{
+		listFunc: func(ctx context.Context) ([]library.Playlist, error) {
+			return []library.Playlist{{
+				ID:        7,
+				Name:      "Favorites",
+				CreatedAt: now,
+				UpdatedAt: now,
+			}}, nil
+		},
+		createFunc: func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+			panic("unexpected create invocation")
+		},
+		getFunc: func(ctx context.Context, id int64) (library.Playlist, error) {
+			panic("unexpected get invocation")
+		},
+		deleteFunc: func(ctx context.Context, id int64) error {
+			panic("unexpected delete invocation")
+		},
+		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
+			panic("unexpected add track invocation")
+		},
+	}
+
+	s := newServerWithRepos(stubTrackRepository{listFunc: func(ctx context.Context) ([]library.Track, error) {
+		return nil, nil
+	}}, playlistRepo)
+	req := httptest.NewRequest(http.MethodGet, "/playlists", nil)
+	rec := httptest.NewRecorder()
+
+	s.handlePlaylists(rec, req)
+
+	res := rec.Result()
+	t.Cleanup(func() { _ = res.Body.Close() })
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	var playlists []library.Playlist
+	if err := json.NewDecoder(res.Body).Decode(&playlists); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+
+	if len(playlists) != 1 || playlists[0].Name != "Favorites" {
+		t.Fatalf("unexpected playlists response: %+v", playlists)
+	}
+}
+
+func TestHandlePlaylists_CreateJSONSuccess(t *testing.T) {
+	now := time.Now().UTC()
+	playlistRepo := stubPlaylistRepository{
+		createFunc: func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+			if params.Name != "Chill" {
+				t.Fatalf("expected name Chill, got %q", params.Name)
+			}
+			return library.Playlist{ID: 10, Name: params.Name, CreatedAt: now, UpdatedAt: now}, nil
+		},
+		listFunc: func(ctx context.Context) ([]library.Playlist, error) {
+			return nil, nil
+		},
+		getFunc: func(ctx context.Context, id int64) (library.Playlist, error) {
+			panic("unexpected get invocation")
+		},
+		deleteFunc: func(ctx context.Context, id int64) error {
+			panic("unexpected delete invocation")
+		},
+		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
+			panic("unexpected add track invocation")
+		},
+	}
+
+	s := newServerWithRepos(stubTrackRepository{listFunc: func(ctx context.Context) ([]library.Track, error) {
+		return nil, nil
+	}}, playlistRepo)
+
+	payload := createPlaylistRequest{Name: "Chill"}
+	req := httptest.NewRequest(http.MethodPost, "/playlists", bytes.NewReader(mustJSON(payload)))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	s.handlePlaylists(rec, req)
+
+	res := rec.Result()
+	t.Cleanup(func() { _ = res.Body.Close() })
+
+	if res.StatusCode != http.StatusCreated {
+		t.Fatalf("expected status %d, got %d", http.StatusCreated, res.StatusCode)
+	}
+
+	if location := res.Header.Get("Location"); location != "/playlists/10" {
+		t.Fatalf("expected Location /playlists/10, got %q", location)
+	}
+
+	var playlist library.Playlist
+	if err := json.NewDecoder(res.Body).Decode(&playlist); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+
+	if playlist.ID != 10 || playlist.Name != "Chill" {
+		t.Fatalf("unexpected playlist response: %+v", playlist)
+	}
+}
+
+func TestHandlePlaylists_CreateFormValidation(t *testing.T) {
+	playlistRepo := stubPlaylistRepository{
+		listFunc: func(ctx context.Context) ([]library.Playlist, error) {
+			return nil, nil
+		},
+		createFunc: func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+			panic("unexpected create invocation")
+		},
+		getFunc: func(ctx context.Context, id int64) (library.Playlist, error) {
+			panic("unexpected get invocation")
+		},
+		deleteFunc: func(ctx context.Context, id int64) error {
+			panic("unexpected delete invocation")
+		},
+		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
+			panic("unexpected add track invocation")
+		},
+	}
+
+	s := newServerWithRepos(stubTrackRepository{}, playlistRepo)
+	req := httptest.NewRequest(http.MethodPost, "/playlists", strings.NewReader("name="))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+
+	s.handlePlaylists(rec, req)
+
+	res := rec.Result()
+	t.Cleanup(func() { _ = res.Body.Close() })
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+
+	if !strings.Contains(string(body), "Name is required.") {
+		t.Fatalf("expected validation error in body")
+	}
 }
 
 func TestHandleTracks_ListSuccess(t *testing.T) {

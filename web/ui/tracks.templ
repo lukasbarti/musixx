@@ -3,7 +3,6 @@ package ui
 import (
   "strconv"
 
-  "github.com/lukasbarti/musixx/internal/library"
   "github.com/lukasbarti/musixx/web/components"
 )
 
@@ -16,100 +15,6 @@ type TrackFormData struct {
   SourceURL string
 }
 
-templ TracksPage(tracks []library.Track) {
-  @components.Layout("musixx Library", TracksContent(tracks))
-}
-
-templ TracksContent(tracks []library.Track) {
-  <section class="d-flex flex-column gap-4">
-    <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
-      <h2 class="h4 mb-0">Library</h2>
-      <a class="btn btn-primary" href="/tracks/new">Add Track</a>
-    </div>
-    if len(tracks) == 0 {
-      <div class="card border-0 shadow-sm text-center py-5">
-        <div class="card-body">
-          <p class="mb-0 text-muted">No tracks yet. Use the Add Track button to import music.</p>
-        </div>
-      </div>
-    } else {
-      <div class="card shadow-sm">
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th scope="col">Play</th>
-                <th scope="col">Title</th>
-                <th scope="col">Artist</th>
-                <th scope="col">Album</th>
-                <th scope="col">Added</th>
-                <th scope="col" class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              for _, track := range tracks {
-                <tr>
-                  <td>
-                    <button
-                      type="button"
-                      class="btn btn-primary btn-sm"
-                      data-action="play-track"
-                      data-track-id={strconv.FormatInt(track.ID, 10)}
-                      data-track-url={"/media/" + strconv.FormatInt(track.ID, 10)}
-                      data-track-title={track.Title}
-                      data-track-artist={(func() string {
-                        if track.Artist != nil {
-                          return *track.Artist
-                        }
-                        return ""
-                      }())}
-                      data-track-album={(func() string {
-                        if track.Album != nil {
-                          return *track.Album
-                        }
-                        return ""
-                      }())}
-                      data-track-duration={(func() string {
-                        if track.DurationSeconds != nil {
-                          return strconv.Itoa(*track.DurationSeconds)
-                        }
-                        return ""
-                      }())}
-                    >Play</button>
-                  </td>
-                  <td class="fw-semibold">{track.Title}</td>
-                  <td>
-                    if track.Artist != nil {
-                      {*track.Artist}
-                    } else {
-                      <span class="text-muted">—</span>
-                    }
-                  </td>
-                  <td>
-                    if track.Album != nil {
-                      {*track.Album}
-                    } else {
-                      <span class="text-muted">—</span>
-                    }
-                  </td>
-                  <td class="text-muted small">{track.CreatedAt.Format("2006-01-02")}</td>
-                  <td>
-                    <div class="d-flex justify-content-end gap-2">
-                      <a class="btn btn-outline-secondary btn-sm" href={"/tracks/" + strconv.FormatInt(track.ID, 10) + "/edit"}>Edit</a>
-                      <form method="post" action={"/tracks/" + strconv.FormatInt(track.ID, 10) + "/delete"}>
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    }
-  </section>
-}
 
 templ TrackFormPage(form TrackFormData, errors []string) {
   @components.Layout("Add Track", TrackFormContent(form, errors))

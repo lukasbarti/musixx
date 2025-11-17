@@ -1,21 +1,89 @@
-import { DEFAULT_TIME, PLAY_BUTTON_SELECTOR, VOLUME_KEY } from "../constants.js";
+import {
+  DEFAULT_TIME,
+  PLAY_BUTTON_SELECTOR,
+  QUEUE_ADD_SELECTOR,
+  VOLUME_KEY,
+} from "../constants.js";
 import { formatTime } from "../utils/time.js";
-import { PlaybackQueue } from "./queue.js";
+import { PlaybackQueue, createQueueEntryFromButton } from "./queue.js";
+import { PlayerState } from "./state.js";
+import { QueuePanel } from "./panel.js";
+
+const collectEntriesFromDom = () => {
+  const seen = new Set();
+  const entries = [];
+  document.querySelectorAll(PLAY_BUTTON_SELECTOR).forEach((button) => {
+    const entry = createQueueEntryFromButton(button);
+    if (entry && entry.id && entry.url && !seen.has(entry.id)) {
+      entries.push(entry);
+      seen.add(entry.id);
+    }
+  });
+  return entries;
+};
+
+const escapeAttribute = (value) => {
+  if (!value) {
+    return "";
+  }
+  if (window.CSS?.escape) {
+    return CSS.escape(value);
+  }
+  return value.replace(/"/g, '\"');
+};
 
 export class PlayerController {
   constructor(elements) {
     this.el = elements;
+    this.state = new PlayerState();
     this.queue = new PlaybackQueue();
+    this.queuePanel = null;
     this.currentTrackId = null;
     this.durationSeconds = 0;
     this.seeking = false;
     this.controlsEnabled = false;
     this.activeRow = null;
+    this.loop = false;
   }
 
   init() {
     this.initializeUi();
-    this.queue.build();
+
+    const defaultEntries = collectEntriesFromDom();
+    const snapshot = this.state.initialize(defaultEntries);
+    this.loop = snapshot.loop;
+
+    this.queue.sync(snapshot.queue, snapshot.currentTrackId ?? null);
+    this.currentTrackId = snapshot.currentTrackId ?? this.queue.currentId ?? null;
+
+    this.queuePanel = new QueuePanel(
+      {
+        queuePanel: this.el.queuePanel,
+        queueList: this.el.queueList,
+        queueToggle: this.el.queueToggle,
+        queueClose: this.el.queueClose,
+        queueClear: this.el.queueClear,
+        queueLoop: this.el.queueLoop,
+        queueEmpty: this.el.queueEmpty,
+      },
+      {
+        onSelect: (id) => this.handleQueueSelect(id),
+        onRemove: (id) => this.handleQueueRemove(id),
+        onReorder: (from, to) => this.handleQueueReorder(from, to),
+        onToggleLoop: () => this.handleLoopToggle(),
+        onClear: () => this.handleQueueClear(),
+        onToggleVisibility: (isOpen) => this.handleQueueVisibilityChange(isOpen),
+      }
+    );
+
+    this.queuePanel.render(this.queue.getEntries(), this.currentTrackId);
+    this.queuePanel.setLoopActive(this.loop);
+
+    if (this.currentTrackId) {
+      this.setActiveTrackRow(this.currentTrackId);
+      this.queuePanel.setActiveTrack(this.currentTrackId);
+    }
+
     this.updateNavButtons();
     this.bindDomEvents();
     this.bindAudioEvents();
@@ -43,32 +111,20 @@ export class PlayerController {
   }
 
   updateNavButtons() {
-    if (!this.controlsEnabled) {
-      if (this.el.prev) {
-        this.el.prev.disabled = true;
-      }
-      if (this.el.next) {
-        this.el.next.disabled = true;
-      }
-      return;
-    }
+    const queueSize = this.queue.size();
+    const hasCurrent = Boolean(this.currentTrackId && this.queue.getEntryById(this.currentTrackId));
+    const loopEnabled = this.state.getLoop();
 
-    if (!this.currentTrackId) {
-      if (this.el.prev) {
-        this.el.prev.disabled = true;
-      }
-      if (this.el.next) {
-        this.el.next.disabled = this.queue.size() <= 1;
-      }
-      return;
-    }
+    const canNavigate = this.controlsEnabled && hasCurrent && queueSize > 0;
 
-    this.queue.build(this.currentTrackId);
     if (this.el.prev) {
-      this.el.prev.disabled = !this.queue.hasPrevious();
+      const hasPrevious = this.queue.hasPrevious() || (loopEnabled && queueSize > 1);
+      this.el.prev.disabled = !(canNavigate && hasPrevious);
     }
+
     if (this.el.next) {
-      this.el.next.disabled = !this.queue.hasNext();
+      const hasNext = this.queue.hasNext() || (loopEnabled && queueSize > 1);
+      this.el.next.disabled = !(canNavigate && hasNext);
     }
   }
 
@@ -90,14 +146,21 @@ export class PlayerController {
     this.el.toggle.setAttribute("aria-label", label);
   }
 
-  setActiveRow(row) {
-    if (this.activeRow && this.activeRow !== row) {
+  setActiveTrackRow(trackId) {
+    if (this.activeRow) {
       this.activeRow.classList.remove("table-active");
+      this.activeRow = null;
     }
-    if (row && row !== this.activeRow) {
+    if (!trackId) {
+      return;
+    }
+    const selector = `${PLAY_BUTTON_SELECTOR}[data-track-id="${escapeAttribute(trackId)}"]`;
+    const button = document.querySelector(selector);
+    const row = button?.closest("tr") ?? null;
+    if (row) {
       row.classList.add("table-active");
+      this.activeRow = row;
     }
-    this.activeRow = row ?? null;
   }
 
   loadTrack(entry, { toggleIfSame = true, autoplay = true } = {}) {
@@ -115,15 +178,18 @@ export class PlayerController {
     }
 
     this.currentTrackId = entry.id;
+    this.state.setCurrentTrackId(entry.id);
     this.queue.setCurrent(entry);
+    this.queuePanel?.setActiveTrack(entry.id);
+    this.setActiveTrackRow(entry.id);
+
     this.durationSeconds = entry.duration || 0;
 
     this.el.title.textContent = entry.title;
     const details = [entry.artist, entry.album].filter(Boolean).join(" • ");
-    this.el.meta.textContent = details;
+    this.el.meta.textContent = details || "";
     this.el.bar.classList.remove("inactive");
     this.setControlsEnabled(true);
-    this.setActiveRow(entry.row ?? null);
 
     this.el.progress.value = "0";
     this.el.progress.max = this.durationSeconds ? this.durationSeconds.toString() : "100";
@@ -144,8 +210,11 @@ export class PlayerController {
     return true;
   }
 
+  handleQueueVisibilityChange(isOpen) {
+    document.body.classList.toggle("queue-open", Boolean(isOpen));
+  }
+
   playQueueIndex(index, { autoplay = true } = {}) {
-    this.queue.build(this.currentTrackId);
     const entry = this.queue.getEntryAt(index);
     if (!entry) {
       return false;
@@ -154,8 +223,13 @@ export class PlayerController {
   }
 
   playNext({ autoplay = true } = {}) {
-    this.queue.build(this.currentTrackId);
-    const entry = this.queue.getNextEntry();
+    if (this.queue.isEmpty()) {
+      return false;
+    }
+    let entry = this.queue.getNextEntry();
+    if (!entry && this.state.getLoop()) {
+      entry = this.queue.getEntryAt(0);
+    }
     if (!entry) {
       return false;
     }
@@ -163,8 +237,13 @@ export class PlayerController {
   }
 
   playPrevious() {
-    this.queue.build(this.currentTrackId);
-    const entry = this.queue.getPreviousEntry();
+    if (this.queue.isEmpty()) {
+      return false;
+    }
+    let entry = this.queue.getPreviousEntry();
+    if (!entry && this.state.getLoop()) {
+      entry = this.queue.getEntryAt(this.queue.size() - 1);
+    }
     if (!entry) {
       return false;
     }
@@ -177,14 +256,30 @@ export class PlayerController {
       if (!(target instanceof Element)) {
         return;
       }
-      const button = target.closest(PLAY_BUTTON_SELECTOR);
-      if (!button) {
+      const playButton = target.closest(PLAY_BUTTON_SELECTOR);
+      if (playButton) {
+        event.preventDefault();
+        const entry = createQueueEntryFromButton(playButton);
+        if (!entry) {
+          return;
+        }
+        this.ensureEntryInQueue(entry);
+        this.loadTrack(entry, { toggleIfSame: true, autoplay: true });
+        this.queuePanel?.render(this.queue.getEntries(), this.currentTrackId);
         return;
       }
-      event.preventDefault();
-      this.queue.build(this.currentTrackId);
-      const entry = this.queue.getEntryForButton(button);
-      this.loadTrack(entry, { toggleIfSame: true, autoplay: true });
+
+      const addButton = target.closest(QUEUE_ADD_SELECTOR);
+      if (addButton) {
+        event.preventDefault();
+        const entry = createQueueEntryFromButton(addButton);
+        if (!entry) {
+          return;
+        }
+        this.ensureEntryInQueue(entry);
+        this.queuePanel?.render(this.queue.getEntries(), this.currentTrackId);
+        this.queuePanel?.open();
+      }
     });
 
     this.el.toggle.addEventListener("click", () => {
@@ -196,11 +291,10 @@ export class PlayerController {
     });
 
     this.el.stop.addEventListener("click", () => {
-      this.el.audio.pause();
-      this.el.audio.currentTime = 0;
-      this.setToggleText(false);
-      this.el.progress.value = "0";
-      this.updateTimeDisplay();
+      this.stopPlayback();
+      this.queuePanel?.setActiveTrack(null);
+      this.state.setCurrentTrackId(null);
+      this.currentTrackId = null;
       this.updateNavButtons();
     });
 
@@ -287,6 +381,91 @@ export class PlayerController {
         this.updateNavButtons();
       }
     });
+  }
+
+  ensureEntryInQueue(entry) {
+    const { added } = this.state.addEntry(entry);
+    this.syncQueueFromState({ reRender: true });
+    if (added) {
+      this.queuePanel?.setLoopActive(this.state.getLoop());
+    }
+  }
+
+  handleQueueSelect(trackId) {
+    const entry = this.queue.getEntryById(trackId);
+    if (!entry) {
+      return;
+    }
+    this.loadTrack(entry, { toggleIfSame: false, autoplay: true });
+  }
+
+  handleQueueRemove(trackId) {
+    const wasCurrent = this.currentTrackId === trackId;
+    if (!this.state.removeEntryById(trackId)) {
+      return;
+    }
+    if (wasCurrent) {
+      this.stopPlayback();
+      this.currentTrackId = null;
+      this.state.setCurrentTrackId(null);
+    }
+    this.syncQueueFromState({ reRender: true });
+    if (this.currentTrackId) {
+      this.queuePanel?.setActiveTrack(this.currentTrackId);
+    } else {
+      this.queuePanel?.setActiveTrack(null);
+      this.setControlsEnabled(false);
+      this.updateTimeDisplay();
+    }
+  }
+
+  handleQueueReorder(fromIndex, toIndex) {
+    if (!this.state.reorder(fromIndex, toIndex)) {
+      return;
+    }
+    this.syncQueueFromState({ reRender: true });
+    if (this.currentTrackId) {
+      this.queuePanel?.setActiveTrack(this.currentTrackId);
+    }
+  }
+
+  handleQueueClear() {
+    this.state.clearQueue();
+    this.stopPlayback();
+    this.currentTrackId = null;
+    this.syncQueueFromState({ reRender: true });
+    this.queuePanel?.setActiveTrack(null);
+    this.setControlsEnabled(false);
+    this.updateTimeDisplay();
+  }
+
+  handleLoopToggle() {
+    const loop = this.state.toggleLoop();
+    this.loop = loop;
+    this.queuePanel?.setLoopActive(loop);
+    this.updateNavButtons();
+  }
+
+  stopPlayback() {
+    this.el.audio.pause();
+    this.el.audio.currentTime = 0;
+    this.setToggleText(false);
+    this.durationSeconds = 0;
+    this.el.progress.value = "0";
+    this.updateTimeDisplay();
+    this.setControlsEnabled(false);
+    this.setActiveTrackRow(null);
+  }
+
+  syncQueueFromState({ reRender = false } = {}) {
+    const snapshot = this.state.getSnapshot();
+    this.queue.sync(snapshot.queue, snapshot.currentTrackId ?? this.currentTrackId ?? null);
+    this.loop = snapshot.loop;
+    if (reRender) {
+      this.queuePanel?.render(this.queue.getEntries(), this.currentTrackId);
+      this.queuePanel?.setLoopActive(this.loop);
+    }
+    this.updateNavButtons();
   }
 
   applyStoredVolume() {

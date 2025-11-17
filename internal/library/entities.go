@@ -34,3 +34,27 @@ type UpdateTrackParams struct {
 	DurationSeconds *int
 	SourceURL       *string
 }
+
+// Playlist represents a curated list of tracks stored in the library.
+type Playlist struct {
+	ID          int64
+	Name        string
+	Description *string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+// CreatePlaylistParams contains the fields required to persist a playlist.
+type CreatePlaylistParams struct {
+	Name        string
+	Description *string
+}
+
+// PlaylistTrack represents an association between a playlist and a track.
+type PlaylistTrack struct {
+	ID         int64
+	PlaylistID int64
+	TrackID    int64
+	Position   int
+	CreatedAt  time.Time
+}

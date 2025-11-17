@@ -23,21 +23,24 @@ import (
 
 // Server wraps the HTTP listener and handlers for musixx.
 type Server struct {
-	httpServer *http.Server
-	trackRepo  library.TrackRepository
-	downloader downloader.Service
+	httpServer   *http.Server
+	trackRepo    library.TrackRepository
+	playlistRepo library.PlaylistRepository
+	downloader   downloader.Service
 }
 
 // New constructs a server configured with routing stubs.
-func New(trackRepo library.TrackRepository, dl downloader.Service) (*Server, error) {
+func New(trackRepo library.TrackRepository, playlistRepo library.PlaylistRepository, dl downloader.Service) (*Server, error) {
 	mux := http.NewServeMux()
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("web/assets"))))
 
-	s := &Server{trackRepo: trackRepo, downloader: dl}
+	s := &Server{trackRepo: trackRepo, playlistRepo: playlistRepo, downloader: dl}
 	mux.HandleFunc("/", s.handleLibraryPage)
 	mux.HandleFunc("/tracks/new", s.handleNewTrack)
 	mux.HandleFunc("/tracks", s.handleTracks)
 	mux.HandleFunc("/tracks/", s.handleTrackByID)
+	mux.HandleFunc("/playlists", s.handlePlaylists)
+	mux.HandleFunc("/playlists/tracks", s.handlePlaylistTracks)
 	mux.HandleFunc("/media/", s.handleMedia)
 
 	httpSrv := &http.Server{
@@ -97,17 +100,52 @@ func (s *Server) handleLibraryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tracks, err := s.trackRepo.List(r.Context())
+	tab := parseLibraryTab(r.URL.Query().Get("tab"))
+	s.renderLibraryPage(w, r, tab, ui.PlaylistFormData{}, nil, nil)
+}
+
+func parseLibraryTab(raw string) ui.LibraryTab {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case string(ui.LibraryTabPlaylists):
+		return ui.LibraryTabPlaylists
+	default:
+		return ui.LibraryTabTracks
+	}
+}
+
+func (s *Server) renderLibraryPage(w http.ResponseWriter, r *http.Request, tab ui.LibraryTab, playlistForm ui.PlaylistFormData, playlistErrors []string, trackErrors []string) {
+	data, err := s.loadLibraryPageData(r.Context(), tab, playlistForm, playlistErrors, trackErrors)
 	if err != nil {
-		log.Printf("list tracks for page: %v", err)
+		log.Printf("load library data: %v", err)
 		http.Error(w, "failed to load library", http.StatusInternalServerError)
 		return
 	}
 
-	if err := s.renderHTML(w, r, ui.TracksPage(tracks)); err != nil {
-		log.Printf("render tracks page: %v", err)
+	if err := s.renderHTML(w, r, ui.LibraryPage(data)); err != nil {
+		log.Printf("render library page: %v", err)
 		http.Error(w, "failed to render page", http.StatusInternalServerError)
 	}
+}
+
+func (s *Server) loadLibraryPageData(ctx context.Context, tab ui.LibraryTab, playlistForm ui.PlaylistFormData, playlistErrors []string, trackErrors []string) (ui.LibraryPageData, error) {
+	tracks, err := s.trackRepo.List(ctx)
+	if err != nil {
+		return ui.LibraryPageData{}, fmt.Errorf("list tracks: %w", err)
+	}
+
+	playlists, err := s.playlistRepo.List(ctx)
+	if err != nil {
+		return ui.LibraryPageData{}, fmt.Errorf("list playlists: %w", err)
+	}
+
+	return ui.LibraryPageData{
+		Tracks:         tracks,
+		Playlists:      playlists,
+		ActiveTab:      tab,
+		PlaylistForm:   playlistForm,
+		PlaylistErrors: playlistErrors,
+		TrackErrors:    trackErrors,
+	}, nil
 }
 
 func (s *Server) handleNewTrack(w http.ResponseWriter, r *http.Request) {
@@ -206,6 +244,221 @@ func (s *Server) handleTracks(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow", strings.Join([]string{http.MethodGet, http.MethodPost}, ", "))
 		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 	}
+}
+
+func (s *Server) handlePlaylists(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		s.listPlaylists(w, r)
+	case http.MethodPost:
+		contentType := strings.ToLower(strings.TrimSpace(r.Header.Get("Content-Type")))
+		if strings.HasPrefix(contentType, "application/json") {
+			s.createPlaylistJSON(w, r)
+		} else {
+			s.createPlaylistForm(w, r)
+		}
+	default:
+		w.Header().Set("Allow", strings.Join([]string{http.MethodGet, http.MethodPost}, ", "))
+		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
+func (s *Server) handlePlaylistTracks(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		contentType := strings.ToLower(strings.TrimSpace(r.Header.Get("Content-Type")))
+		if strings.HasPrefix(contentType, "application/json") {
+			s.addTrackToPlaylistJSON(w, r)
+		} else {
+			s.addTrackToPlaylistForm(w, r)
+		}
+	default:
+		w.Header().Set("Allow", http.MethodPost)
+		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
+func (s *Server) createPlaylistForm(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.renderLibraryPage(w, r, ui.LibraryTabPlaylists, ui.PlaylistFormData{}, []string{"Invalid form submission."}, nil)
+		return
+	}
+
+	form := ui.PlaylistFormData{
+		Name:        strings.TrimSpace(r.FormValue("name")),
+		Description: strings.TrimSpace(r.FormValue("description")),
+	}
+
+	var validationErrors []string
+	if form.Name == "" {
+		validationErrors = append(validationErrors, "Name is required.")
+	}
+
+	if len(validationErrors) > 0 {
+		s.renderLibraryPage(w, r, ui.LibraryTabPlaylists, form, validationErrors, nil)
+		return
+	}
+
+	_, err := s.playlistRepo.Create(r.Context(), library.CreatePlaylistParams{
+		Name:        form.Name,
+		Description: optionalString(form.Description),
+	})
+	if err != nil {
+		log.Printf("create playlist: %v", err)
+		http.Error(w, "failed to create playlist", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/?tab=playlists", http.StatusSeeOther)
+}
+
+func (s *Server) createPlaylistJSON(w http.ResponseWriter, r *http.Request) {
+	var payload createPlaylistRequest
+	if err := decodeJSON(r, &payload); err != nil {
+		s.writeError(w, http.StatusBadRequest, fmt.Sprintf("invalid json: %v", err))
+		return
+	}
+
+	name := strings.TrimSpace(payload.Name)
+	if name == "" {
+		s.writeError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+
+	var description *string
+	if payload.Description != nil {
+		description = optionalString(strings.TrimSpace(*payload.Description))
+	}
+
+	playlist, err := s.playlistRepo.Create(r.Context(), library.CreatePlaylistParams{
+		Name:        name,
+		Description: description,
+	})
+	if err != nil {
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("create playlist: %v", err))
+		return
+	}
+
+	w.Header().Set("Location", fmt.Sprintf("/playlists/%d", playlist.ID))
+	s.writeJSON(w, http.StatusCreated, playlist)
+}
+
+func (s *Server) listPlaylists(w http.ResponseWriter, r *http.Request) {
+	playlists, err := s.playlistRepo.List(r.Context())
+	if err != nil {
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("list playlists: %v", err))
+		return
+	}
+
+	s.writeJSON(w, http.StatusOK, playlists)
+}
+
+func (s *Server) addTrackToPlaylistForm(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.renderLibraryPage(w, r, ui.LibraryTabTracks, ui.PlaylistFormData{}, nil, []string{"Invalid form submission."})
+		return
+	}
+
+	rawPlaylistID := strings.TrimSpace(r.FormValue("playlist_id"))
+	rawTrackID := strings.TrimSpace(r.FormValue("track_id"))
+
+	var errorsList []string
+	if rawPlaylistID == "" {
+		errorsList = append(errorsList, "Select a playlist.")
+	}
+	if rawTrackID == "" {
+		errorsList = append(errorsList, "Invalid track selection.")
+	}
+
+	playlistID, playlistErr := strconv.ParseInt(rawPlaylistID, 10, 64)
+	if playlistErr != nil || playlistID <= 0 {
+		errorsList = append(errorsList, "Invalid playlist selection.")
+	}
+
+	trackID, trackErr := strconv.ParseInt(rawTrackID, 10, 64)
+	if trackErr != nil || trackID <= 0 {
+		errorsList = append(errorsList, "Invalid track selection.")
+	}
+
+	if len(errorsList) > 0 {
+		s.renderLibraryPage(w, r, ui.LibraryTabTracks, ui.PlaylistFormData{}, nil, errorsList)
+		return
+	}
+
+	if _, err := s.playlistRepo.GetByID(r.Context(), playlistID); err != nil {
+		if errors.Is(err, library.ErrNotFound) {
+			s.renderLibraryPage(w, r, ui.LibraryTabTracks, ui.PlaylistFormData{}, nil, []string{"Playlist not found."})
+			return
+		}
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("load playlist: %v", err))
+		return
+	}
+
+	if _, err := s.trackRepo.GetByID(r.Context(), trackID); err != nil {
+		if errors.Is(err, library.ErrNotFound) {
+			s.renderLibraryPage(w, r, ui.LibraryTabTracks, ui.PlaylistFormData{}, nil, []string{"Track not found."})
+			return
+		}
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("load track: %v", err))
+		return
+	}
+
+	if err := s.playlistRepo.AddTrack(r.Context(), playlistID, trackID); err != nil {
+		if isUniqueConstraintError(err) {
+			s.renderLibraryPage(w, r, ui.LibraryTabTracks, ui.PlaylistFormData{}, nil, []string{"Track is already in that playlist."})
+			return
+		}
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("add track to playlist: %v", err))
+		return
+	}
+
+	http.Redirect(w, r, "/?tab=tracks", http.StatusSeeOther)
+}
+
+func (s *Server) addTrackToPlaylistJSON(w http.ResponseWriter, r *http.Request) {
+	var payload addTrackToPlaylistRequest
+	if err := decodeJSON(r, &payload); err != nil {
+		s.writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if payload.PlaylistID <= 0 {
+		s.writeError(w, http.StatusBadRequest, "playlist_id is required")
+		return
+	}
+	if payload.TrackID <= 0 {
+		s.writeError(w, http.StatusBadRequest, "track_id is required")
+		return
+	}
+
+	if _, err := s.playlistRepo.GetByID(r.Context(), payload.PlaylistID); err != nil {
+		if errors.Is(err, library.ErrNotFound) {
+			s.writeError(w, http.StatusNotFound, "playlist not found")
+			return
+		}
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("load playlist: %v", err))
+		return
+	}
+
+	if _, err := s.trackRepo.GetByID(r.Context(), payload.TrackID); err != nil {
+		if errors.Is(err, library.ErrNotFound) {
+			s.writeError(w, http.StatusNotFound, "track not found")
+			return
+		}
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("load track: %v", err))
+		return
+	}
+
+	if err := s.playlistRepo.AddTrack(r.Context(), payload.PlaylistID, payload.TrackID); err != nil {
+		if isUniqueConstraintError(err) {
+			s.writeError(w, http.StatusConflict, "track already exists in playlist")
+			return
+		}
+		s.writeError(w, http.StatusInternalServerError, fmt.Sprintf("add track to playlist: %v", err))
+		return
+	}
+
+	s.writeJSON(w, http.StatusCreated, addTrackToPlaylistResponse{PlaylistID: payload.PlaylistID, TrackID: payload.TrackID})
 }
 
 func (s *Server) handleTrackByID(w http.ResponseWriter, r *http.Request) {
@@ -671,4 +924,19 @@ type updateTrackRequest struct {
 
 type errorResponse struct {
 	Error string `json:"error"`
+}
+
+type createPlaylistRequest struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+}
+
+type addTrackToPlaylistRequest struct {
+	PlaylistID int64 `json:"playlist_id"`
+	TrackID    int64 `json:"track_id"`
+}
+
+type addTrackToPlaylistResponse struct {
+	PlaylistID int64 `json:"playlist_id"`
+	TrackID    int64 `json:"track_id"`
 }

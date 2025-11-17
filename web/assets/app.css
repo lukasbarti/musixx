@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  --queue-panel-width: 320px;
 }
 
 body {
@@ -61,4 +62,221 @@ main {
 
 .table tbody tr.table-active {
   transition: background-color 150ms ease;
+}
+
+.player-controls .btn {
+  min-width: 3.25rem;
+}
+
+.queue-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--queue-panel-width);
+  max-width: 85vw;
+  background: #212529;
+  color: #f8f9fa;
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.35);
+  transform: translateX(100%);
+  transition: transform 220ms ease, opacity 220ms ease;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  gap: 1rem;
+}
+
+.queue-panel.is-open {
+  transform: translateX(0);
+}
+
+body.queue-open nav.navbar,
+body.queue-open main,
+body.queue-open .player-bar {
+  transition: margin-right 200ms ease, right 200ms ease, width 200ms ease;
+}
+
+body.queue-open nav.navbar,
+body.queue-open main {
+  margin-right: var(--queue-panel-width);
+}
+
+body.queue-open .player-bar {
+  right: var(--queue-panel-width);
+  width: calc(100% - var(--queue-panel-width));
+}
+
+body.queue-open .player-bar .container {
+  max-width: 100%;
+}
+
+.queue-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.queue-panel__title-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.queue-panel__heading {
+  font-weight: 600;
+  color: #f8f9fa;
+}
+
+.queue-panel__close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.25rem 0.4rem;
+}
+
+.queue-panel__toolbar .btn {
+  --bs-btn-color: #f8f9fa;
+  --bs-btn-border-color: rgba(248, 249, 250, 0.4);
+  --bs-btn-hover-color: #212529;
+  --bs-btn-hover-bg: #f8f9fa;
+  --bs-btn-hover-border-color: #f8f9fa;
+  --bs-btn-active-shadow: none;
+}
+
+.queue-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.queue-panel__empty {
+  margin: 0;
+}
+
+.queue-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.queue-panel__item,
+.queue-panel__dropzone {
+  background: rgba(248, 249, 250, 0.05);
+  border: 1px solid rgba(248, 249, 250, 0.08);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.queue-panel__item {
+  cursor: grab;
+}
+
+.queue-panel__item.is-dragging {
+  opacity: 0.5;
+}
+
+.queue-panel__item.is-active {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.6);
+}
+
+.queue-panel__item.is-drop-target {
+  border-style: dashed;
+  border-color: rgba(13, 110, 253, 0.5);
+}
+
+.queue-panel__drag-handle {
+  font-size: 1.25rem;
+  line-height: 1;
+  opacity: 0.6;
+  cursor: grab;
+}
+
+.queue-panel__dropzone {
+  justify-content: center;
+  font-size: 0.85rem;
+  color: rgba(248, 249, 250, 0.6);
+  text-align: center;
+  border-style: dashed;
+  min-height: 2.5rem;
+}
+
+.queue-panel__item .queue-panel__body {
+  flex: 1;
+}
+
+.queue-panel__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.queue-panel__meta {
+  font-size: 0.8rem;
+  color: rgba(248, 249, 250, 0.65);
+}
+
+.queue-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.queue-panel__remove {
+  border: none;
+  background: transparent;
+  color: rgba(248, 249, 250, 0.7);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.queue-panel__remove:hover,
+.queue-panel__remove:focus {
+  color: #f8f9fa;
+}
+
+.queue-panel__toolbar .is-active {
+  --bs-btn-bg: #0d6efd;
+  --bs-btn-border-color: #0d6efd;
+}
+
+.queue-panel__item:active .queue-panel__drag-handle {
+  cursor: grabbing;
+}
+
+.queue-panel__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.queue-panel__list::-webkit-scrollbar-thumb {
+  background: rgba(248, 249, 250, 0.2);
+  border-radius: 999px;
+}
+
+.queue-panel__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (max-width: 991.98px) {
+  :root {
+    --queue-panel-width: 280px;
+  }
+  .queue-panel {
+    padding: 1rem;
+  }
 }

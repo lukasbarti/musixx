@@ -8,11 +8,18 @@ const requiredElementIds = {
   toggle: "player-toggle",
   stop: "player-stop",
   volume: "player-volume-slider",
+  queuePanel: "queue-panel",
+  queueList: "queue-list",
+  queueToggle: "queue-toggle",
+  queueClose: "queue-close",
+  queueClear: "queue-clear",
+  queueLoop: "queue-loop",
 };
 
 const optionalElementIds = {
   prev: "player-prev",
   next: "player-next",
+  queueEmpty: "queue-empty",
 };
 
 const mapElements = (ids) =>

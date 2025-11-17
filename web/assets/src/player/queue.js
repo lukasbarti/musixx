@@ -1,46 +1,31 @@
-import { PLAY_BUTTON_SELECTOR } from "../constants.js";
 import { parseDuration } from "../utils/time.js";
 
-const createQueueEntry = (button) => {
-  const row = button.closest("tr");
-  return {
-    id: button.dataset.trackId ?? "",
-    url: button.dataset.trackUrl ?? "",
-    title: button.dataset.trackTitle ?? "Unknown Track",
-    artist: button.dataset.trackArtist ?? "",
-    album: button.dataset.trackAlbum ?? "",
-    duration: parseDuration(button.dataset.trackDuration),
-    button,
-    row,
-  };
-};
-
 export class PlaybackQueue {
-  constructor() {
+  constructor(entries = [], currentId = null) {
     this.entries = [];
     this.byId = new Map();
     this.currentId = null;
     this.index = -1;
+    this.sync(entries, currentId);
   }
 
-  build(currentId = this.currentId) {
-    this.entries = [];
+  sync(entries = [], currentId = this.currentId) {
+    this.entries = entries.slice();
     this.byId.clear();
-
-    document.querySelectorAll(PLAY_BUTTON_SELECTOR).forEach((button) => {
-      const entry = createQueueEntry(button);
-      this.entries.push(entry);
+    this.entries.forEach((entry) => {
       if (entry.id) {
         this.byId.set(entry.id, entry);
       }
     });
-
-    this.currentId = currentId ?? null;
-    this.index = this.currentId ? this.entries.findIndex((entry) => entry.id === this.currentId) : -1;
+    this.setCurrentById(currentId ?? null);
   }
 
   setCurrent(entry) {
-    this.currentId = entry?.id ?? null;
+    this.setCurrentById(entry?.id ?? null);
+  }
+
+  setCurrentById(id) {
+    this.currentId = id ?? null;
     if (!this.currentId) {
       this.index = -1;
       return;
@@ -48,22 +33,11 @@ export class PlaybackQueue {
     this.index = this.entries.findIndex((item) => item.id === this.currentId);
   }
 
-  getEntryForButton(button) {
-    if (!button) {
+  getEntryById(id) {
+    if (!id) {
       return null;
     }
-
-    const { trackId } = button.dataset;
-    if (trackId && this.byId.has(trackId)) {
-      return this.byId.get(trackId);
-    }
-
-    this.build(this.currentId);
-    if (trackId && this.byId.has(trackId)) {
-      return this.byId.get(trackId);
-    }
-
-    return createQueueEntry(button);
+    return this.byId.get(id) ?? null;
   }
 
   getEntryAt(index) {
@@ -98,4 +72,28 @@ export class PlaybackQueue {
   size() {
     return this.entries.length;
   }
+
+  isEmpty() {
+    return this.entries.length === 0;
+  }
+
+  getEntries() {
+    return this.entries.slice();
+  }
 }
+
+export const createQueueEntryFromDataset = (dataset) => ({
+  id: dataset.trackId ?? "",
+  url: dataset.trackUrl ?? "",
+  title: dataset.trackTitle ?? "Unknown Track",
+  artist: dataset.trackArtist ?? "",
+  album: dataset.trackAlbum ?? "",
+  duration: parseDuration(dataset.trackDuration),
+});
+
+export const createQueueEntryFromButton = (button) => {
+  if (!button) {
+    return null;
+  }
+  return createQueueEntryFromDataset(button.dataset ?? {});
+};
