@@ -25,11 +25,12 @@ type stubTrackRepository struct {
 }
 
 type stubPlaylistRepository struct {
-	createFunc   func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error)
-	getFunc      func(ctx context.Context, id int64) (library.Playlist, error)
-	listFunc     func(ctx context.Context) ([]library.Playlist, error)
-	deleteFunc   func(ctx context.Context, id int64) error
-	addTrackFunc func(ctx context.Context, playlistID, trackID int64) error
+	createFunc                func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error)
+	getFunc                   func(ctx context.Context, id int64) (library.Playlist, error)
+	listFunc                  func(ctx context.Context) ([]library.Playlist, error)
+	deleteFunc                func(ctx context.Context, id int64) error
+	addTrackFunc              func(ctx context.Context, playlistID, trackID int64) error
+	listTracksForPlaylistFunc func(ctx context.Context, playlistID int64) ([]library.PlaylistTrackEntry, error)
 }
 
 type stubDownloader struct {
@@ -59,6 +60,9 @@ func newServerWithRepo(repo stubTrackRepository) *Server {
 		},
 		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
 			panic("AddTrack not implemented in stub")
+		},
+		listTracksForPlaylistFunc: func(ctx context.Context, playlistID int64) ([]library.PlaylistTrackEntry, error) {
+			return nil, nil
 		},
 	})
 }
@@ -96,6 +100,13 @@ func (s stubPlaylistRepository) List(ctx context.Context) ([]library.Playlist, e
 	return s.listFunc(ctx)
 }
 
+func (s stubPlaylistRepository) ListTracks(ctx context.Context, playlistID int64) ([]library.PlaylistTrackEntry, error) {
+	if s.listTracksForPlaylistFunc == nil {
+		return nil, nil
+	}
+	return s.listTracksForPlaylistFunc(ctx, playlistID)
+}
+
 func (s stubPlaylistRepository) Delete(ctx context.Context, id int64) error {
 	if s.deleteFunc == nil {
 		panic("Delete not implemented in stub")
@@ -126,7 +137,7 @@ func (s stubTrackRepository) GetByID(ctx context.Context, id int64) (library.Tra
 
 func (s stubTrackRepository) List(ctx context.Context) ([]library.Track, error) {
 	if s.listFunc == nil {
-		panic("List not implemented in stub")
+		return nil, nil
 	}
 	return s.listFunc(ctx)
 }
@@ -290,6 +301,137 @@ func TestHandlePlaylists_CreateFormValidation(t *testing.T) {
 
 	if !strings.Contains(string(body), "Name is required.") {
 		t.Fatalf("expected validation error in body")
+	}
+}
+
+func TestHandlePlaylistByID_RenderHTML(t *testing.T) {
+	now := time.Now().UTC()
+	playlist := library.Playlist{ID: 3, Name: "Road Trip", CreatedAt: now, UpdatedAt: now}
+	track := library.Track{ID: 11, Title: "Sunset Drive", FilePath: "music/sunset-drive.opus", CreatedAt: now, UpdatedAt: now}
+
+	playlistRepo := stubPlaylistRepository{
+		listFunc: func(ctx context.Context) ([]library.Playlist, error) {
+			return nil, nil
+		},
+		getFunc: func(ctx context.Context, id int64) (library.Playlist, error) {
+			if id != playlist.ID {
+				t.Fatalf("unexpected playlist id: %d", id)
+			}
+			return playlist, nil
+		},
+		listTracksForPlaylistFunc: func(ctx context.Context, playlistID int64) ([]library.PlaylistTrackEntry, error) {
+			if playlistID != playlist.ID {
+				t.Fatalf("unexpected playlist id for tracks: %d", playlistID)
+			}
+			return []library.PlaylistTrackEntry{{
+				Track:    track,
+				Position: 0,
+				AddedAt:  now,
+			}}, nil
+		},
+		createFunc: func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+			panic("unexpected create invocation")
+		},
+		deleteFunc: func(ctx context.Context, id int64) error {
+			panic("unexpected delete invocation")
+		},
+		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
+			panic("unexpected add track invocation")
+		},
+	}
+
+	s := newServerWithRepos(stubTrackRepository{}, playlistRepo)
+	req := httptest.NewRequest(http.MethodGet, "/playlists/3", nil)
+	rec := httptest.NewRecorder()
+
+	s.handlePlaylistByID(rec, req)
+
+	res := rec.Result()
+	t.Cleanup(func() { _ = res.Body.Close() })
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+
+	if !strings.Contains(string(body), playlist.Name) {
+		t.Fatalf("expected body to contain playlist name")
+	}
+	if !strings.Contains(string(body), track.Title) {
+		t.Fatalf("expected body to contain track title")
+	}
+}
+
+func TestHandlePlaylistByID_GetJSON(t *testing.T) {
+	now := time.Now().UTC()
+	playlist := library.Playlist{ID: 6, Name: "Focus", CreatedAt: now, UpdatedAt: now}
+	track := library.Track{ID: 21, Title: "Laser", FilePath: "music/laser.opus", CreatedAt: now, UpdatedAt: now}
+
+	playlistRepo := stubPlaylistRepository{
+		listFunc: func(ctx context.Context) ([]library.Playlist, error) {
+			return nil, nil
+		},
+		getFunc: func(ctx context.Context, id int64) (library.Playlist, error) {
+			if id != playlist.ID {
+				t.Fatalf("unexpected playlist id: %d", id)
+			}
+			return playlist, nil
+		},
+		listTracksForPlaylistFunc: func(ctx context.Context, playlistID int64) ([]library.PlaylistTrackEntry, error) {
+			if playlistID != playlist.ID {
+				t.Fatalf("unexpected playlist id for tracks: %d", playlistID)
+			}
+			return []library.PlaylistTrackEntry{{
+				Track:    track,
+				Position: 1,
+				AddedAt:  now,
+			}}, nil
+		},
+		createFunc: func(ctx context.Context, params library.CreatePlaylistParams) (library.Playlist, error) {
+			panic("unexpected create invocation")
+		},
+		deleteFunc: func(ctx context.Context, id int64) error {
+			panic("unexpected delete invocation")
+		},
+		addTrackFunc: func(ctx context.Context, playlistID, trackID int64) error {
+			panic("unexpected add track invocation")
+		},
+	}
+
+	s := newServerWithRepos(stubTrackRepository{}, playlistRepo)
+	req := httptest.NewRequest(http.MethodGet, "/playlists/6", nil)
+	req.Header.Set("Accept", "application/json")
+	rec := httptest.NewRecorder()
+
+	s.handlePlaylistByID(rec, req)
+
+	res := rec.Result()
+	t.Cleanup(func() { _ = res.Body.Close() })
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	var payload playlistDetailsResponse
+	if err := json.NewDecoder(res.Body).Decode(&payload); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+
+	if payload.Playlist.ID != playlist.ID {
+		t.Fatalf("unexpected playlist id in response: %+v", payload.Playlist)
+	}
+	if len(payload.Tracks) != 1 {
+		t.Fatalf("expected 1 track, got %d", len(payload.Tracks))
+	}
+	if payload.Tracks[0].Track.ID != track.ID {
+		t.Fatalf("unexpected track id: %+v", payload.Tracks[0])
+	}
+	if payload.Tracks[0].Position != 1 {
+		t.Fatalf("unexpected track position: %d", payload.Tracks[0].Position)
 	}
 }
 

@@ -1,0 +1,160 @@
+package ui
+
+import (
+  "strconv"
+
+  "github.com/lukasbarti/musixx/internal/library"
+  "github.com/lukasbarti/musixx/web/components"
+)
+
+type PlaylistPageData struct {
+  Playlist library.Playlist
+  Tracks   []library.PlaylistTrackEntry
+}
+
+templ PlaylistPage(data PlaylistPageData) {
+  @components.Layout(func() string {
+      if data.Playlist.Name != "" {
+        return data.Playlist.Name + " • Playlist"
+      }
+      return "Playlist"
+    }(), PlaylistContent(data))
+}
+
+templ PlaylistContent(data PlaylistPageData) {
+  <section class="d-flex flex-column gap-4">
+    <div class="d-flex flex-column flex-lg-row gap-3 justify-content-between align-items-lg-center">
+      <div class="d-flex flex-column gap-2">
+        <a class="text-decoration-none small" href="/?tab=playlists">← Back to Playlists</a>
+        <h2 class="h4 mb-0">
+          if data.Playlist.Name != "" {
+            {data.Playlist.Name}
+          } else {
+            {"Playlist"}
+          }
+        </h2>
+        if data.Playlist.Description != nil && *data.Playlist.Description != "" {
+          <p class="mb-0 text-muted">{*data.Playlist.Description}</p>
+        } else {
+          <p class="mb-0 text-muted">No description provided.</p>
+        }
+      </div>
+      <div class="d-flex flex-column align-items-lg-end gap-1 text-muted small">
+        <span>Created {data.Playlist.CreatedAt.Format("2006-01-02")}</span>
+        <span>{func() string {
+            count := len(data.Tracks)
+            if count == 1 {
+              return "1 track"
+            }
+            return strconv.Itoa(count) + " tracks"
+          }()}</span>
+      </div>
+    </div>
+    if len(data.Tracks) == 0 {
+      <div class="card border-0 shadow-sm text-center py-5">
+        <div class="card-body d-flex flex-column gap-3">
+          <p class="mb-0 text-muted">This playlist is empty. Use the library to add tracks.</p>
+          <a class="btn btn-primary mx-auto" href="/?tab=tracks">Browse Tracks</a>
+        </div>
+      </div>
+    } else {
+      <div class="card shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Play</th>
+                <th scope="col">Title</th>
+                <th scope="col">Artist</th>
+                <th scope="col">Album</th>
+                <th scope="col">Added</th>
+              </tr>
+            </thead>
+            <tbody>
+              for _, item := range data.Tracks {
+                <tr>
+                  <th scope="row" class="text-muted">{item.Position + 1}</th>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        data-action="play-track"
+                        data-queue-group={"playlist-" + strconv.FormatInt(data.Playlist.ID, 10)}
+                        data-track-id={strconv.FormatInt(item.Track.ID, 10)}
+                        data-track-url={"/media/" + strconv.FormatInt(item.Track.ID, 10)}
+                        data-track-title={item.Track.Title}
+                        data-track-artist={(func() string {
+                          if item.Track.Artist != nil {
+                            return *item.Track.Artist
+                          }
+                          return ""
+                        }())}
+                        data-track-album={(func() string {
+                          if item.Track.Album != nil {
+                            return *item.Track.Album
+                          }
+                          return ""
+                        }())}
+                        data-track-duration={(func() string {
+                          if item.Track.DurationSeconds != nil {
+                            return strconv.Itoa(*item.Track.DurationSeconds)
+                          }
+                          return ""
+                        }())}
+                      >Play</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        data-action="queue-track"
+                        data-queue-group={"playlist-" + strconv.FormatInt(data.Playlist.ID, 10)}
+                        data-track-id={strconv.FormatInt(item.Track.ID, 10)}
+                        data-track-url={"/media/" + strconv.FormatInt(item.Track.ID, 10)}
+                        data-track-title={item.Track.Title}
+                        data-track-artist={(func() string {
+                          if item.Track.Artist != nil {
+                            return *item.Track.Artist
+                          }
+                          return ""
+                        }())}
+                        data-track-album={(func() string {
+                          if item.Track.Album != nil {
+                            return *item.Track.Album
+                          }
+                          return ""
+                        }())}
+                        data-track-duration={(func() string {
+                          if item.Track.DurationSeconds != nil {
+                            return strconv.Itoa(*item.Track.DurationSeconds)
+                          }
+                          return ""
+                        }())}
+                      >Queue</button>
+                    </div>
+                  </td>
+                  <td class="fw-semibold">{item.Track.Title}</td>
+                  <td>
+                    if item.Track.Artist != nil {
+                      {*item.Track.Artist}
+                    } else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td>
+                    if item.Track.Album != nil {
+                      {*item.Track.Album}
+                    } else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td class="text-muted small">{item.AddedAt.Format("2006-01-02")}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+}

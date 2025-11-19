@@ -110,6 +110,7 @@ templ LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, er
                         type="button"
                         class="btn btn-primary btn-sm"
                         data-action="play-track"
+                        data-queue-group="library-default"
                         data-track-id={strconv.FormatInt(track.ID, 10)}
                         data-track-url={"/media/" + strconv.FormatInt(track.ID, 10)}
                         data-track-title={track.Title}
@@ -136,6 +137,7 @@ templ LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, er
                         type="button"
                         class="btn btn-outline-secondary btn-sm"
                         data-action="queue-track"
+                        data-queue-group="library-default"
                         data-track-id={strconv.FormatInt(track.ID, 10)}
                         data-track-url={"/media/" + strconv.FormatInt(track.ID, 10)}
                         data-track-title={track.Title}
@@ -259,7 +261,10 @@ templ LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, 
                       <p class="mb-0 text-muted">No description provided.</p>
                     }
                   </div>
-                  <div class="text-muted small">Created {playlist.CreatedAt.Format("2006-01-02")}</div>
+                  <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center text-md-end">
+                    <div class="text-muted small">Created {playlist.CreatedAt.Format("2006-01-02")}</div>
+                    <a class="btn btn-outline-primary btn-sm" href={"/playlists/" + strconv.FormatInt(playlist.ID, 10)}>Open</a>
+                  </div>
                 </div>
               </div>
             }

@@ -58,3 +58,10 @@ type PlaylistTrack struct {
 	Position   int
 	CreatedAt  time.Time
 }
+
+// PlaylistTrackEntry represents an ordered track within a playlist including track metadata.
+type PlaylistTrackEntry struct {
+	Track    Track     `json:"track"`
+	Position int       `json:"position"`
+	AddedAt  time.Time `json:"added_at"`
+}

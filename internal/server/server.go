@@ -40,6 +40,7 @@ func New(trackRepo library.TrackRepository, playlistRepo library.PlaylistReposit
 	mux.HandleFunc("/tracks", s.handleTracks)
 	mux.HandleFunc("/tracks/", s.handleTrackByID)
 	mux.HandleFunc("/playlists", s.handlePlaylists)
+	mux.HandleFunc("/playlists/", s.handlePlaylistByID)
 	mux.HandleFunc("/playlists/tracks", s.handlePlaylistTracks)
 	mux.HandleFunc("/media/", s.handleMedia)
 
@@ -146,6 +147,20 @@ func (s *Server) loadLibraryPageData(ctx context.Context, tab ui.LibraryTab, pla
 		PlaylistErrors: playlistErrors,
 		TrackErrors:    trackErrors,
 	}, nil
+}
+
+func (s *Server) loadPlaylistDetails(ctx context.Context, playlistID int64) (library.Playlist, []library.PlaylistTrackEntry, error) {
+	playlist, err := s.playlistRepo.GetByID(ctx, playlistID)
+	if err != nil {
+		return library.Playlist{}, nil, fmt.Errorf("get playlist %d: %w", playlistID, err)
+	}
+
+	tracks, err := s.playlistRepo.ListTracks(ctx, playlistID)
+	if err != nil {
+		return library.Playlist{}, nil, fmt.Errorf("list tracks for playlist %d: %w", playlistID, err)
+	}
+
+	return playlist, tracks, nil
 }
 
 func (s *Server) handleNewTrack(w http.ResponseWriter, r *http.Request) {
@@ -276,6 +291,81 @@ func (s *Server) handlePlaylistTracks(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow", http.MethodPost)
 		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 	}
+}
+
+func (s *Server) handlePlaylistByID(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/playlists/")
+	if path == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	segments := strings.Split(path, "/")
+	if len(segments) == 0 || segments[0] == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	id, err := strconv.ParseInt(segments[0], 10, 64)
+	if err != nil || id <= 0 {
+		s.writeError(w, http.StatusBadRequest, "invalid playlist id")
+		return
+	}
+
+	if len(segments) > 1 && segments[1] != "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		if prefersHTML(r) {
+			s.renderPlaylistPage(w, r, id)
+		} else {
+			s.getPlaylist(w, r, id)
+		}
+	default:
+		w.Header().Set("Allow", http.MethodGet)
+		s.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
+func (s *Server) renderPlaylistPage(w http.ResponseWriter, r *http.Request, playlistID int64) {
+	playlist, tracks, err := s.loadPlaylistDetails(r.Context(), playlistID)
+	if err != nil {
+		if errors.Is(err, library.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
+		log.Printf("load playlist %d: %v", playlistID, err)
+		http.Error(w, "failed to load playlist", http.StatusInternalServerError)
+		return
+	}
+
+	data := ui.PlaylistPageData{
+		Playlist: playlist,
+		Tracks:   tracks,
+	}
+
+	if err := s.renderHTML(w, r, ui.PlaylistPage(data)); err != nil {
+		log.Printf("render playlist page: %v", err)
+		http.Error(w, "failed to render page", http.StatusInternalServerError)
+	}
+}
+
+func (s *Server) getPlaylist(w http.ResponseWriter, r *http.Request, id int64) {
+	playlist, tracks, err := s.loadPlaylistDetails(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, library.ErrNotFound) {
+			s.writeError(w, http.StatusNotFound, "playlist not found")
+			return
+		}
+		log.Printf("load playlist %d: %v", id, err)
+		s.writeError(w, http.StatusInternalServerError, "failed to load playlist")
+		return
+	}
+
+	s.writeJSON(w, http.StatusOK, playlistDetailsResponse{Playlist: playlist, Tracks: tracks})
 }
 
 func (s *Server) createPlaylistForm(w http.ResponseWriter, r *http.Request) {
@@ -845,6 +935,24 @@ func (s *Server) renderHTML(w http.ResponseWriter, r *http.Request, component te
 	return nil
 }
 
+func prefersHTML(r *http.Request) bool {
+	accept := r.Header.Get("Accept")
+	if accept == "" {
+		return true
+	}
+
+	for _, part := range strings.Split(accept, ",") {
+		mediaType := strings.SplitN(part, ";", 2)[0]
+		mediaType = strings.ToLower(strings.TrimSpace(mediaType))
+		switch mediaType {
+		case "text/html", "application/xhtml+xml", "*/*":
+			return true
+		}
+	}
+
+	return false
+}
+
 func optionalString(value string) *string {
 	if value == "" {
 		return nil
@@ -939,4 +1047,9 @@ type addTrackToPlaylistRequest struct {
 type addTrackToPlaylistResponse struct {
 	PlaylistID int64 `json:"playlist_id"`
 	TrackID    int64 `json:"track_id"`
+}
+
+type playlistDetailsResponse struct {
+	Playlist library.Playlist             `json:"playlist"`
+	Tracks   []library.PlaylistTrackEntry `json:"tracks"`
 }

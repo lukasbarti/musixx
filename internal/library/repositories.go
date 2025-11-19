@@ -16,6 +16,7 @@ type PlaylistRepository interface {
 	Create(ctx context.Context, params CreatePlaylistParams) (Playlist, error)
 	GetByID(ctx context.Context, id int64) (Playlist, error)
 	List(ctx context.Context) ([]Playlist, error)
+	ListTracks(ctx context.Context, playlistID int64) ([]PlaylistTrackEntry, error)
 	AddTrack(ctx context.Context, playlistID, trackID int64) error
 	Delete(ctx context.Context, id int64) error
 }

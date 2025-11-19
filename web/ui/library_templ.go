@@ -281,14 +281,14 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				return templ_7745c5c3_Err
 			}
 			for _, track := range tracks {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<tr><td><div class=\"d-flex gap-2\"><button type=\"button\" class=\"btn btn-primary btn-sm\" data-action=\"play-track\" data-track-id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<tr><td><div class=\"d-flex gap-2\"><button type=\"button\" class=\"btn btn-primary btn-sm\" data-action=\"play-track\" data-queue-group=\"library-default\" data-track-id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(track.ID, 10))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 113, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 114, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -301,7 +301,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("/media/" + strconv.FormatInt(track.ID, 10))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 114, Col: 83}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 115, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -314,7 +314,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(track.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 115, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 116, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -332,7 +332,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					return ""
 				}()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 121, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 122, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -350,7 +350,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					return ""
 				}()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 127, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 128, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -368,20 +368,20 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					return ""
 				}()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 133, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 134, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\">Play</button> <button type=\"button\" class=\"btn btn-outline-secondary btn-sm\" data-action=\"queue-track\" data-track-id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\">Play</button> <button type=\"button\" class=\"btn btn-outline-secondary btn-sm\" data-action=\"queue-track\" data-queue-group=\"library-default\" data-track-id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(track.ID, 10))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 139, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 141, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -394,7 +394,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("/media/" + strconv.FormatInt(track.ID, 10))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 140, Col: 83}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 142, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
@@ -407,7 +407,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(track.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 141, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 143, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
@@ -425,7 +425,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					return ""
 				}()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 147, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 149, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
@@ -443,7 +443,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					return ""
 				}()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 153, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 155, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -461,7 +461,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					return ""
 				}()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 159, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 161, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 				if templ_7745c5c3_Err != nil {
@@ -474,7 +474,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var25 string
 				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(track.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 163, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 165, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
@@ -488,7 +488,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(*track.Artist)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 166, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 168, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 					if templ_7745c5c3_Err != nil {
@@ -508,7 +508,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(*track.Album)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 173, Col: 35}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 175, Col: 35}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -527,7 +527,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(track.CreatedAt.Format("2006-01-02"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 178, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 180, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -545,7 +545,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(track.ID, 10))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 183, Col: 101}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 185, Col: 101}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
@@ -563,7 +563,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 						var templ_7745c5c3_Var30 string
 						templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(playlist.ID, 10))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 187, Col: 79}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 189, Col: 79}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 						if templ_7745c5c3_Err != nil {
@@ -576,7 +576,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 						var templ_7745c5c3_Var31 string
 						templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(playlist.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 187, Col: 95}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 189, Col: 95}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 						if templ_7745c5c3_Err != nil {
@@ -604,7 +604,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var32 templ.SafeURL
 				templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinURLErrs("/tracks/" + strconv.FormatInt(track.ID, 10) + "/edit")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 196, Col: 128}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 198, Col: 128}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 				if templ_7745c5c3_Err != nil {
@@ -617,7 +617,7 @@ func LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, err
 				var templ_7745c5c3_Var33 templ.SafeURL
 				templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinURLErrs("/tracks/" + strconv.FormatInt(track.ID, 10) + "/delete")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 197, Col: 108}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 199, Col: 108}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 				if templ_7745c5c3_Err != nil {
@@ -679,7 +679,7 @@ func LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, e
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 223, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 225, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
@@ -702,7 +702,7 @@ func LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, e
 		var templ_7745c5c3_Var36 string
 		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(form.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 231, Col: 108}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 233, Col: 108}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 		if templ_7745c5c3_Err != nil {
@@ -715,7 +715,7 @@ func LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, e
 		var templ_7745c5c3_Var37 string
 		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(form.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 235, Col: 145}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 237, Col: 145}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 		if templ_7745c5c3_Err != nil {
@@ -743,7 +743,7 @@ func LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, e
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(playlist.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 255, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 257, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -761,7 +761,7 @@ func LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, e
 					var templ_7745c5c3_Var39 string
 					templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(*playlist.Description)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 257, Col: 71}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 259, Col: 71}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 					if templ_7745c5c3_Err != nil {
@@ -777,30 +777,43 @@ func LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, e
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</div><div class=\"text-muted small\">Created ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "</div><div class=\"d-flex flex-column flex-md-row gap-2 align-items-md-center text-md-end\"><div class=\"text-muted small\">Created ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(playlist.CreatedAt.Format("2006-01-02"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 262, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 265, Col: 98}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</div><a class=\"btn btn-outline-primary btn-sm\" href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var41 templ.SafeURL
+				templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinURLErrs("/playlists/" + strconv.FormatInt(playlist.ID, 10))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/library.templ`, Line: 266, Col: 118}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "\">Open</a></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

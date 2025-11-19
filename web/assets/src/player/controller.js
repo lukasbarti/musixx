@@ -1,4 +1,5 @@
 import {
+  DEFAULT_QUEUE_GROUP,
   DEFAULT_TIME,
   PLAY_BUTTON_SELECTOR,
   QUEUE_ADD_SELECTOR,
@@ -9,10 +10,20 @@ import { PlaybackQueue, createQueueEntryFromButton } from "./queue.js";
 import { PlayerState } from "./state.js";
 import { QueuePanel } from "./panel.js";
 
-const collectEntriesFromDom = () => {
+const escapeAttribute = (value) => {
+  if (!value) {
+    return "";
+  }
+  if (window.CSS?.escape) {
+    return CSS.escape(value);
+  }
+  return value.replace(/"/g, '\"');
+};
+
+const collectEntriesFromButtons = (buttons) => {
   const seen = new Set();
   const entries = [];
-  document.querySelectorAll(PLAY_BUTTON_SELECTOR).forEach((button) => {
+  buttons.forEach((button) => {
     const entry = createQueueEntryFromButton(button);
     if (entry && entry.id && entry.url && !seen.has(entry.id)) {
       entries.push(entry);
@@ -22,14 +33,30 @@ const collectEntriesFromDom = () => {
   return entries;
 };
 
-const escapeAttribute = (value) => {
-  if (!value) {
-    return "";
+const collectEntriesForGroup = (groupId) => {
+  if (!groupId) {
+    return [];
   }
-  if (window.CSS?.escape) {
-    return CSS.escape(value);
+  const selector = `${PLAY_BUTTON_SELECTOR}[data-queue-group="${escapeAttribute(groupId)}"]`;
+  const buttons = document.querySelectorAll(selector);
+  return collectEntriesFromButtons(Array.from(buttons));
+};
+
+const collectAllEntries = () => collectEntriesFromButtons(Array.from(document.querySelectorAll(PLAY_BUTTON_SELECTOR)));
+
+const collectEntriesFromDom = () => {
+  let entries = collectEntriesForGroup(DEFAULT_QUEUE_GROUP);
+  if (entries.length) {
+    return entries;
   }
-  return value.replace(/"/g, '\"');
+  const firstButton = document.querySelector(PLAY_BUTTON_SELECTOR);
+  if (firstButton?.dataset.queueGroup) {
+    entries = collectEntriesForGroup(firstButton.dataset.queueGroup);
+    if (entries.length) {
+      return entries;
+    }
+  }
+  return collectAllEntries();
 };
 
 export class PlayerController {
@@ -263,9 +290,14 @@ export class PlayerController {
         if (!entry) {
           return;
         }
-        this.ensureEntryInQueue(entry);
-        this.loadTrack(entry, { toggleIfSame: true, autoplay: true });
+        const groupId = playButton.dataset.queueGroup || DEFAULT_QUEUE_GROUP;
+        const queueEntry = this.resetQueueForPlay(groupId, entry);
+        if (!queueEntry) {
+          return;
+        }
+        this.loadTrack(queueEntry, { toggleIfSame: false, autoplay: true });
         this.queuePanel?.render(this.queue.getEntries(), this.currentTrackId);
+        this.queuePanel?.setLoopActive(this.state.getLoop());
         return;
       }
 
@@ -332,9 +364,11 @@ export class PlayerController {
     }
 
     this.el.volume.addEventListener("input", () => {
-      const value = Math.min(Math.max(Number.parseInt(this.el.volume.value ?? "0", 10) / 100, 0), 1);
-      this.el.audio.volume = value;
-      localStorage.setItem(VOLUME_KEY, value.toString());
+      const sliderValue = Math.min(Math.max(Number.parseInt(this.el.volume.value ?? "0", 10) / 100, 0), 1);
+      // Convert linear slider to logarithmic volume (human perception)
+      const volume = sliderValue === 0 ? 0 : Math.pow(sliderValue, 2);
+      this.el.audio.volume = volume;
+      localStorage.setItem(VOLUME_KEY, volume.toString());
     });
   }
 
@@ -389,6 +423,31 @@ export class PlayerController {
     if (added) {
       this.queuePanel?.setLoopActive(this.state.getLoop());
     }
+  }
+
+  resetQueueForPlay(groupId, entry) {
+    const desiredGroup = groupId || DEFAULT_QUEUE_GROUP;
+    let queueEntries = collectEntriesForGroup(desiredGroup);
+    if (!queueEntries.length && desiredGroup !== DEFAULT_QUEUE_GROUP) {
+      queueEntries = collectEntriesForGroup(DEFAULT_QUEUE_GROUP);
+    }
+    if (!queueEntries.length && entry) {
+      queueEntries = [entry];
+    }
+
+    const sanitizedQueue = this.state.setQueue(queueEntries);
+    const containsTarget = entry && sanitizedQueue.some((item) => item.id === entry.id);
+    const targetId = containsTarget ? entry.id : sanitizedQueue[0]?.id ?? entry?.id ?? null;
+    this.state.setCurrentTrackId(targetId);
+    this.syncQueueFromState();
+
+    if (!targetId) {
+      return sanitizedQueue[0] ?? null;
+    }
+    return (
+      this.queue.getEntryById(targetId) ??
+      (containsTarget ? entry : sanitizedQueue.find((item) => item.id === targetId) ?? entry ?? null)
+    );
   }
 
   handleQueueSelect(trackId) {
@@ -481,6 +540,8 @@ export class PlayerController {
     }
 
     this.el.audio.volume = initialVolume;
-    this.el.volume.value = Math.round(initialVolume * 100).toString();
+    // Convert logarithmic volume back to linear slider position
+    const sliderValue = initialVolume === 0 ? 0 : Math.sqrt(initialVolume);
+    this.el.volume.value = Math.round(sliderValue * 100).toString();
   }
 }
