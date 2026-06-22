@@ -2,13 +2,22 @@ import {
   DEFAULT_QUEUE_GROUP,
   DEFAULT_TIME,
   PLAY_BUTTON_SELECTOR,
+  PLAYBACK_RATE_KEY,
   QUEUE_ADD_SELECTOR,
   VOLUME_KEY,
+  PITCH_SEMITONES_KEY,
+  PLAYER_STATE_KEY,
+  QUEUE_PANEL_STATE_KEY,
 } from "../constants.js";
 import { formatTime } from "../utils/time.js";
 import { PlaybackQueue, createQueueEntryFromButton } from "./queue.js";
 import { PlayerState } from "./state.js";
 import { QueuePanel } from "./panel.js";
+import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
+
+const SOUND_TOUCH_PROCESSOR_PATH = "/assets/soundtouch-processor.js";
+
+const formatPitchLabel = (value) => `${value > 0 ? "+" : ""}${value} st`;
 
 const escapeAttribute = (value) => {
   if (!value) {
@@ -71,6 +80,14 @@ export class PlayerController {
     this.controlsEnabled = false;
     this.activeRow = null;
     this.loop = false;
+    this.tempo = 1;
+    this.pitchSemitones = 0;
+    this.volume = 0.8;
+    this.audioContext = null;
+    this.mediaElementSource = null;
+    this.soundTouchNode = null;
+    this.gainNode = null;
+    this.audioGraphReady = Promise.resolve();
   }
 
   init() {
@@ -112,9 +129,15 @@ export class PlayerController {
     }
 
     this.updateNavButtons();
+    this.applyStoredVolume();
+    this.applyStoredTempo();
+    this.applyStoredPitch();
+    this.audioGraphReady = this.initializeAudioGraph().catch((error) => {
+      console.error("SoundTouchJS audio graph initialization failed", error);
+      return false;
+    });
     this.bindDomEvents();
     this.bindAudioEvents();
-    this.applyStoredVolume();
   }
 
   initializeUi() {
@@ -222,10 +245,11 @@ export class PlayerController {
     this.el.progress.max = this.durationSeconds ? this.durationSeconds.toString() : "100";
 
     this.el.audio.src = entry.url;
+    this.syncAudioParameters();
     this.el.audio.currentTime = 0;
 
     if (autoplay) {
-      this.el.audio.play().catch(() => {
+      void this.playCurrentTrack().catch(() => {
         this.setToggleText(false);
       });
     } else {
@@ -316,7 +340,7 @@ export class PlayerController {
 
     this.el.toggle.addEventListener("click", () => {
       if (this.el.audio.paused) {
-        this.el.audio.play().catch(() => {});
+        void this.playCurrentTrack().catch(() => {});
       } else {
         this.el.audio.pause();
       }
@@ -367,9 +391,22 @@ export class PlayerController {
       const sliderValue = Math.min(Math.max(Number.parseInt(this.el.volume.value ?? "0", 10) / 100, 0), 1);
       // Convert linear slider to logarithmic volume (human perception)
       const volume = sliderValue === 0 ? 0 : Math.pow(sliderValue, 2);
-      this.el.audio.volume = volume;
+      this.setVolume(volume);
       localStorage.setItem(VOLUME_KEY, volume.toString());
     });
+
+    this.el.speed.addEventListener("input", () => {
+      const rate = Math.min(Math.max(Number.parseFloat(this.el.speed.value ?? "1"), 0.5), 2);
+      this.setTempo(rate);
+      localStorage.setItem(PLAYBACK_RATE_KEY, rate.toString());
+    });
+
+    this.el.pitch.addEventListener("input", () => {
+      const value = Math.min(Math.max(Number.parseFloat(this.el.pitch.value ?? "0", 10), -12), 12);
+      this.setPitchSemitones(value);
+      localStorage.setItem(PITCH_SEMITONES_KEY, value.toString());
+    });
+
   }
 
   bindAudioEvents() {
@@ -415,6 +452,54 @@ export class PlayerController {
         this.updateNavButtons();
       }
     });
+  }
+
+  async initializeAudioGraph() {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) {
+      return false;
+    }
+
+    this.audioContext = new AudioContextCtor();
+    await SoundTouchNode.register(this.audioContext, SOUND_TOUCH_PROCESSOR_PATH);
+
+    this.mediaElementSource = this.audioContext.createMediaElementSource(this.el.audio);
+    this.soundTouchNode = new SoundTouchNode({ context: this.audioContext });
+    this.gainNode = this.audioContext.createGain();
+
+    this.el.audio.preservesPitch = false;
+    this.el.audio.mozPreservesPitch = false;
+    this.el.audio.webkitPreservesPitch = false;
+
+    this.mediaElementSource.connect(this.soundTouchNode);
+    this.soundTouchNode.connect(this.gainNode);
+    this.gainNode.connect(this.audioContext.destination);
+
+    this.syncAudioParameters();
+    this.setVolume(this.volume);
+    return true;
+  }
+
+  syncAudioParameters() {
+    this.el.audio.playbackRate = this.tempo;
+    if (this.soundTouchNode) {
+      this.soundTouchNode.playbackRate.value = this.tempo;
+      this.soundTouchNode.pitchSemitones.value = this.pitchSemitones;
+      this.soundTouchNode.pitch.value = 1;
+    }
+  }
+
+  async playCurrentTrack() {
+    if (!this.currentTrackId) {
+      return false;
+    }
+
+    await this.audioGraphReady;
+    if (this.audioContext && this.audioContext.state === "suspended") {
+      await this.audioContext.resume();
+    }
+    await this.el.audio.play();
+    return true;
   }
 
   ensureEntryInQueue(entry) {
@@ -539,9 +624,69 @@ export class PlayerController {
       }
     }
 
-    this.el.audio.volume = initialVolume;
+    this.setVolume(initialVolume);
     // Convert logarithmic volume back to linear slider position
     const sliderValue = initialVolume === 0 ? 0 : Math.sqrt(initialVolume);
     this.el.volume.value = Math.round(sliderValue * 100).toString();
+  }
+
+  setVolume(volume) {
+    const normalizedVolume = Math.min(Math.max(volume, 0), 1);
+    this.volume = normalizedVolume;
+    if (this.gainNode) {
+      this.gainNode.gain.value = normalizedVolume;
+    }
+  }
+
+  setTempo(rate) {
+    const normalizedRate = Math.min(Math.max(rate, 0.5), 2);
+    this.tempo = normalizedRate;
+    this.el.audio.playbackRate = normalizedRate;
+    if (this.soundTouchNode) {
+      this.soundTouchNode.playbackRate.value = normalizedRate;
+    }
+    this.el.speed.value = normalizedRate.toString();
+    this.el.speedValue.textContent = `${normalizedRate.toFixed(2)}x`;
+  }
+
+  setPitchSemitones(value) {
+    const normalizedValue = Math.min(Math.max(value, -12), 12);
+    this.pitchSemitones = normalizedValue;
+    if (this.soundTouchNode) {
+      this.soundTouchNode.pitchSemitones.value = normalizedValue;
+      this.soundTouchNode.pitch.value = 1;
+    }
+    this.el.pitch.value = normalizedValue.toString();
+    this.el.pitchValue.textContent = formatPitchLabel(normalizedValue);
+  }
+
+  applyStoredTempo() {
+    const storedRate = localStorage.getItem(PLAYBACK_RATE_KEY);
+    let initialRate = 1;
+
+    if (storedRate !== null) {
+      const parsed = Number(storedRate);
+      if (Number.isFinite(parsed) && parsed >= 0.5 && parsed <= 2) {
+        initialRate = parsed;
+      }
+    }
+
+    this.setTempo(initialRate);
+    localStorage.setItem(PLAYBACK_RATE_KEY, initialRate.toString());
+  }
+
+  applyStoredPitch() {
+    const storedPitch = localStorage.getItem(PITCH_SEMITONES_KEY);
+    let initialPitch = 0;
+
+    if (storedPitch !== null) {
+      const parsed = Number(storedPitch);
+      if (Number.isFinite(parsed) && parsed >= -12 && parsed <= 12) {
+        initialPitch = parsed;
+      }
+    }
+
+    this.setPitchSemitones(initialPitch);
+    localStorage.setItem(PITCH_SEMITONES_KEY, initialPitch.toString());
   }
 }

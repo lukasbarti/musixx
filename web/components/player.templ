@@ -41,6 +41,20 @@ templ PlayerBar() {
             <input type="range" class="form-range player-volume__slider" id="player-volume-slider" min="0" max="100" value="80" aria-label="Volume" />
           </div>
         </div>
+        <div class="col-auto">
+          <div class="player-speed d-flex align-items-center gap-2">
+            <label class="small mb-0" for="player-speed-slider">Speed</label>
+            <input type="range" class="form-range player-speed__slider" id="player-speed-slider" min="0.5" max="2" value="1" step="0.01" aria-label="Playback speed" />
+            <span class="player-speed__value small text-nowrap" id="player-speed-value">1.00x</span>
+          </div>
+        </div>
+        <div class="col-auto">
+          <div class="player-pitch d-flex align-items-center gap-2">
+            <label class="small mb-0" for="player-pitch-slider">Pitch</label>
+            <input type="range" class="form-range player-pitch__slider" id="player-pitch-slider" min="-12" max="12" value="0.0" step="0.1" aria-label="Pitch shift in semitones" />
+            <span class="player-pitch__value small text-nowrap" id="player-pitch-value">0 st</span>
+          </div>
+        </div>
       </div>
     </div>
     <audio id="player-audio" preload="none" aria-hidden="true"></audio>

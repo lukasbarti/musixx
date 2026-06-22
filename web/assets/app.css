@@ -54,8 +54,30 @@ main {
   min-width: 120px;
 }
 
+.player-speed__slider {
+  width: 140px;
+  min-width: 120px;
+}
+
+.player-speed__value,
+.player-pitch__value {
+  min-width: 3.75rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-pitch__slider {
+  width: 140px;
+  min-width: 120px;
+}
+
 @media (max-width: 575.98px) {
   .player-volume__slider {
+    width: 100px;
+  }
+
+  .player-speed__slider,
+  .player-pitch__slider {
     width: 100px;
   }
 }

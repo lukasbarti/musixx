@@ -2,4 +2,5 @@
 /cookies.txt
 /tmp
 /music
-/musixx.db
+/musixx.db*
+node_modules
