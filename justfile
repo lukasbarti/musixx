@@ -5,7 +5,10 @@ default: build
 bundle-js:
 	esbuild web/assets/src/app.js --minify --bundle --outfile=web/assets/app.dist.js --format=iife --target=es2019 --sourcemap
 
-build: bundle-js
+bundle-css:
+	npx @tailwindcss/cli -i ./web/assets/src/app.css -o ./web/assets/app.css --minify
+
+build: bundle-js bundle-css
 	go build ./...
 
 run:
@@ -17,5 +20,5 @@ test:
 fmt:
 	gofmt -w cmd internal main.go
 
-generate: bundle-js
+generate: bundle-js bundle-css
 	go tool templ generate

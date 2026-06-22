@@ -42,7 +42,28 @@ func Layout(title string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/assets/css/bootstrap.min.css\"><link rel=\"stylesheet\" href=\"/assets/app.css\"><script src=\"/assets/js/bootstrap.bundle.min.js\" defer></script><script src=\"/assets/app.dist.js\" defer></script></head><body class=\"bg-light\"><nav class=\"navbar navbar-light bg-white border-bottom shadow-sm\"><div class=\"container\"><a class=\"navbar-brand fw-semibold\" href=\"/\">musixx</a></div></nav><main class=\"container my-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " — musixx</title><link rel=\"stylesheet\" href=\"/assets/css/7.css\"><link rel=\"stylesheet\" href=\"/assets/app.css\"><script src=\"/assets/app.dist.js\" defer></script></head><body><div class=\"window app-window\"><div class=\"title-bar\"><div class=\"title-bar-text\">musixx — ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/layout.templ`, Line: 17, Col: 56}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"title-bar-controls\"><button class=\"is-minimize\" aria-label=\"Minimize\"></button> <button class=\"is-maximize\" aria-label=\"Maximize\"></button> <button class=\"is-close\" aria-label=\"Close\"></button></div></div><div class=\"window-body\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = PlayerToolbar().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"app-main\"><nav class=\"app-sidebar\"><ul class=\"tree-view has-connector\"><li><details open><summary>Library</summary><ul><li><a href=\"/?tab=tracks\">All Tracks</a></li><li><a href=\"/?tab=playlists\">Playlists</a></li></ul></details></li></ul></nav><div class=\"sidebar-backdrop\" id=\"sidebar-backdrop\"></div><main class=\"app-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -50,15 +71,15 @@ func Layout(title string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</main></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = PlayerBar().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = PlayerQueue().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

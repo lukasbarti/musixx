@@ -15,58 +15,55 @@ type TrackFormData struct {
   SourceURL string
 }
 
-
 templ TrackFormPage(form TrackFormData, errors []string) {
   @components.Layout("Add Track", TrackFormContent(form, errors))
 }
 
 templ TrackFormContent(form TrackFormData, errors []string) {
-  <section class="d-flex flex-column gap-4">
-    <div>
-      <h2 class="h4 mb-1">Add Track</h2>
-      <p class="text-muted mb-0">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p>
-    </div>
+  <fieldset>
+    <legend>Add Track</legend>
+    <p style="margin: 0 0 8px 0; color: #555;">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p>
     if len(errors) > 0 {
-      <div class="alert alert-danger" role="alert">
-        <p class="fw-semibold mb-2">Unable to save track:</p>
-        <ul class="mb-0 ps-3">
-          for _, err := range errors {
-            <li>{err}</li>
-          }
-        </ul>
-      </div>
+      <p style="color: #c00; font-weight: 600; margin: 0 0 4px 0;">Unable to save track:</p>
+      <ul style="color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;">
+        for _, err := range errors {
+          <li>{ err }</li>
+        }
+      </ul>
     }
-    <form method="post" action="/tracks/new" class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label" for="title">Title *</label>
-        <input class="form-control" id="title" type="text" name="title" required value={form.Title} />
+    <form method="post" action="/tracks/new">
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+        <div class="field-row-stacked">
+          <label for="title">Title *</label>
+          <input id="title" type="text" name="title" required value={ form.Title } style="width: 100%;" />
+        </div>
+        <div class="field-row-stacked">
+          <label for="artist">Artist</label>
+          <input id="artist" type="text" name="artist" value={ form.Artist } style="width: 100%;" />
+        </div>
+        <div class="field-row-stacked">
+          <label for="album">Album</label>
+          <input id="album" type="text" name="album" value={ form.Album } style="width: 100%;" />
+        </div>
+        <div class="field-row-stacked">
+          <label for="duration">Duration (seconds)</label>
+          <input id="duration" type="number" min="0" name="duration_seconds" value={ form.Duration } style="width: 100%;" />
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label" for="artist">Artist</label>
-        <input class="form-control" id="artist" type="text" name="artist" value={form.Artist} />
+      <div class="form-span-2 field-row-stacked" style="margin-bottom: 6px;">
+        <label for="file_path">File Path</label>
+        <input id="file_path" type="text" name="file_path" value={ form.FilePath } placeholder="music/example.opus" style="width: 100%;" />
       </div>
-      <div class="col-md-6">
-        <label class="form-label" for="album">Album</label>
-        <input class="form-control" id="album" type="text" name="album" value={form.Album} />
+      <div class="form-span-2 field-row-stacked" style="margin-bottom: 8px;">
+        <label for="source_url">Source URL</label>
+        <input id="source_url" type="url" name="source_url" value={ form.SourceURL } placeholder="https://www.youtube.com/watch?v=..." style="width: 100%;" />
       </div>
-      <div class="col-md-6">
-        <label class="form-label" for="duration">Duration (seconds)</label>
-        <input class="form-control" id="duration" type="number" min="0" name="duration_seconds" value={form.Duration} />
-      </div>
-      <div class="col-12">
-        <label class="form-label" for="file_path">File Path</label>
-        <input class="form-control" id="file_path" type="text" name="file_path" value={form.FilePath} placeholder="music/example.opus" />
-      </div>
-      <div class="col-12">
-        <label class="form-label" for="source_url">Source URL</label>
-        <input class="form-control" id="source_url" type="url" name="source_url" value={form.SourceURL} placeholder="https://www.youtube.com/watch?v=..." />
-      </div>
-      <div class="col-12 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Save Track</button>
-        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+      <div class="field-row">
+        <button type="submit" class="btn-primary">Save Track</button>
+        <a class="btn" href="/">Cancel</a>
       </div>
     </form>
-  </section>
+  </fieldset>
 }
 
 templ TrackEditPage(id int64, form TrackFormData, errors []string) {
@@ -74,50 +71,48 @@ templ TrackEditPage(id int64, form TrackFormData, errors []string) {
 }
 
 templ TrackEditContent(id int64, form TrackFormData, errors []string) {
-  <section class="d-flex flex-column gap-4">
-    <div>
-      <h2 class="h4 mb-1">Edit Track</h2>
-      <p class="text-muted mb-0">Update the metadata associated with this track.</p>
-    </div>
+  <fieldset>
+    <legend>Edit Track</legend>
+    <p style="margin: 0 0 8px 0; color: #555;">Update the metadata associated with this track.</p>
     if len(errors) > 0 {
-      <div class="alert alert-danger" role="alert">
-        <p class="fw-semibold mb-2">Unable to update track:</p>
-        <ul class="mb-0 ps-3">
-          for _, err := range errors {
-            <li>{err}</li>
-          }
-        </ul>
-      </div>
+      <p style="color: #c00; font-weight: 600; margin: 0 0 4px 0;">Unable to update track:</p>
+      <ul style="color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;">
+        for _, err := range errors {
+          <li>{ err }</li>
+        }
+      </ul>
     }
-    <form method="post" action={"/tracks/" + strconv.FormatInt(id, 10) + "/edit"} class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label" for="edit-title">Title *</label>
-        <input class="form-control" id="edit-title" type="text" name="title" required value={form.Title} />
+    <form method="post" action={ "/tracks/" + strconv.FormatInt(id, 10) + "/edit" }>
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+        <div class="field-row-stacked">
+          <label for="edit-title">Title *</label>
+          <input id="edit-title" type="text" name="title" required value={ form.Title } style="width: 100%;" />
+        </div>
+        <div class="field-row-stacked">
+          <label for="edit-artist">Artist</label>
+          <input id="edit-artist" type="text" name="artist" value={ form.Artist } style="width: 100%;" />
+        </div>
+        <div class="field-row-stacked">
+          <label for="edit-album">Album</label>
+          <input id="edit-album" type="text" name="album" value={ form.Album } style="width: 100%;" />
+        </div>
+        <div class="field-row-stacked">
+          <label for="edit-duration">Duration (seconds)</label>
+          <input id="edit-duration" type="number" min="0" name="duration_seconds" value={ form.Duration } style="width: 100%;" />
+        </div>
       </div>
-      <div class="col-md-6">
-        <label class="form-label" for="edit-artist">Artist</label>
-        <input class="form-control" id="edit-artist" type="text" name="artist" value={form.Artist} />
+      <div class="field-row-stacked" style="margin-bottom: 6px;">
+        <label for="edit-file-path">File Path</label>
+        <input id="edit-file-path" type="text" name="file_path" value={ form.FilePath } readonly style="width: 100%;" />
       </div>
-      <div class="col-md-6">
-        <label class="form-label" for="edit-album">Album</label>
-        <input class="form-control" id="edit-album" type="text" name="album" value={form.Album} />
+      <div class="field-row-stacked" style="margin-bottom: 8px;">
+        <label for="edit-source-url">Source URL</label>
+        <input id="edit-source-url" type="url" name="source_url" value={ form.SourceURL } style="width: 100%;" />
       </div>
-      <div class="col-md-6">
-        <label class="form-label" for="edit-duration">Duration (seconds)</label>
-        <input class="form-control" id="edit-duration" type="number" min="0" name="duration_seconds" value={form.Duration} />
-      </div>
-      <div class="col-12">
-        <label class="form-label" for="edit-file-path">File Path</label>
-        <input class="form-control" id="edit-file-path" type="text" name="file_path" value={form.FilePath} readonly />
-      </div>
-      <div class="col-12">
-        <label class="form-label" for="edit-source-url">Source URL</label>
-        <input class="form-control" id="edit-source-url" type="url" name="source_url" value={form.SourceURL} />
-      </div>
-      <div class="col-12 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Update Track</button>
-        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+      <div class="field-row">
+        <button type="submit" class="btn-primary">Update Track</button>
+        <a class="btn" href="/">Cancel</a>
       </div>
     </form>
-  </section>
+  </fieldset>
 }

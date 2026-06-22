@@ -1,0 +1,24 @@
+.git
+node_modules
+tmp
+
+# SQLite data files
+*.db
+*.db-shm
+*.db-wal
+
+# Music library (mounted as a volume at runtime)
+music/
+
+# Windows-only binaries
+yt-dlp.exe
+
+# Built artifacts (rebuilt inside Docker)
+web/assets/app.css
+web/assets/app.dist.js
+web/assets/app.dist.js.map
+
+# Docs and local config
+docs/
+config.yaml
+cookies.txt

@@ -73,12 +73,12 @@ func TrackFormContent(form TrackFormData, errors []string) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"d-flex flex-column gap-4\"><div><h2 class=\"h4 mb-1\">Add Track</h2><p class=\"text-muted mb-0\">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<fieldset><legend>Add Track</legend><p style=\"margin: 0 0 8px 0; color: #555;\">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(errors) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"alert alert-danger\" role=\"alert\"><p class=\"fw-semibold mb-2\">Unable to save track:</p><ul class=\"mb-0 ps-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p style=\"color: #c00; font-weight: 600; margin: 0 0 4px 0;\">Unable to save track:</p><ul style=\"color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -90,7 +90,7 @@ func TrackFormContent(form TrackFormData, errors []string) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 34, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 30, Col: 19}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -101,90 +101,90 @@ func TrackFormContent(form TrackFormData, errors []string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</ul></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form method=\"post\" action=\"/tracks/new\" class=\"row g-3\"><div class=\"col-md-6\"><label class=\"form-label\" for=\"title\">Title *</label> <input class=\"form-control\" id=\"title\" type=\"text\" name=\"title\" required value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form method=\"post\" action=\"/tracks/new\"><div class=\"form-grid\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;\"><div class=\"field-row-stacked\"><label for=\"title\">Title *</label> <input id=\"title\" type=\"text\" name=\"title\" required value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(form.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 42, Col: 98}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 38, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"></div><div class=\"col-md-6\"><label class=\"form-label\" for=\"artist\">Artist</label> <input class=\"form-control\" id=\"artist\" type=\"text\" name=\"artist\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" style=\"width: 100%;\"></div><div class=\"field-row-stacked\"><label for=\"artist\">Artist</label> <input id=\"artist\" type=\"text\" name=\"artist\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(form.Artist)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 46, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 42, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"></div><div class=\"col-md-6\"><label class=\"form-label\" for=\"album\">Album</label> <input class=\"form-control\" id=\"album\" type=\"text\" name=\"album\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" style=\"width: 100%;\"></div><div class=\"field-row-stacked\"><label for=\"album\">Album</label> <input id=\"album\" type=\"text\" name=\"album\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(form.Album)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 50, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 46, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"></div><div class=\"col-md-6\"><label class=\"form-label\" for=\"duration\">Duration (seconds)</label> <input class=\"form-control\" id=\"duration\" type=\"number\" min=\"0\" name=\"duration_seconds\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" style=\"width: 100%;\"></div><div class=\"field-row-stacked\"><label for=\"duration\">Duration (seconds)</label> <input id=\"duration\" type=\"number\" min=\"0\" name=\"duration_seconds\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(form.Duration)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 54, Col: 116}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 50, Col: 98}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"></div><div class=\"col-12\"><label class=\"form-label\" for=\"file_path\">File Path</label> <input class=\"form-control\" id=\"file_path\" type=\"text\" name=\"file_path\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" style=\"width: 100%;\"></div></div><div class=\"form-span-2 field-row-stacked\" style=\"margin-bottom: 6px;\"><label for=\"file_path\">File Path</label> <input id=\"file_path\" type=\"text\" name=\"file_path\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(form.FilePath)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 58, Col: 100}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 55, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"music/example.opus\"></div><div class=\"col-12\"><label class=\"form-label\" for=\"source_url\">Source URL</label> <input class=\"form-control\" id=\"source_url\" type=\"url\" name=\"source_url\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"music/example.opus\" style=\"width: 100%;\"></div><div class=\"form-span-2 field-row-stacked\" style=\"margin-bottom: 8px;\"><label for=\"source_url\">Source URL</label> <input id=\"source_url\" type=\"url\" name=\"source_url\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(form.SourceURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 62, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 59, Col: 82}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" placeholder=\"https://www.youtube.com/watch?v=...\"></div><div class=\"col-12 d-flex gap-2\"><button type=\"submit\" class=\"btn btn-primary\">Save Track</button> <a href=\"/\" class=\"btn btn-outline-secondary\">Cancel</a></div></form></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" placeholder=\"https://www.youtube.com/watch?v=...\" style=\"width: 100%;\"></div><div class=\"field-row\"><button type=\"submit\" class=\"btn-primary\">Save Track</button> <a class=\"btn\" href=\"/\">Cancel</a></div></form></fieldset>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -242,12 +242,12 @@ func TrackEditContent(id int64, form TrackFormData, errors []string) templ.Compo
 			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<section class=\"d-flex flex-column gap-4\"><div><h2 class=\"h4 mb-1\">Edit Track</h2><p class=\"text-muted mb-0\">Update the metadata associated with this track.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<fieldset><legend>Edit Track</legend><p style=\"margin: 0 0 8px 0; color: #555;\">Update the metadata associated with this track.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(errors) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"alert alert-danger\" role=\"alert\"><p class=\"fw-semibold mb-2\">Unable to update track:</p><ul class=\"mb-0 ps-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p style=\"color: #c00; font-weight: 600; margin: 0 0 4px 0;\">Unable to update track:</p><ul style=\"color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -259,7 +259,7 @@ func TrackEditContent(id int64, form TrackFormData, errors []string) templ.Compo
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 87, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 81, Col: 19}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -270,7 +270,7 @@ func TrackEditContent(id int64, form TrackFormData, errors []string) templ.Compo
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</ul></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -282,91 +282,91 @@ func TrackEditContent(id int64, form TrackFormData, errors []string) templ.Compo
 		var templ_7745c5c3_Var13 templ.SafeURL
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinURLErrs("/tracks/" + strconv.FormatInt(id, 10) + "/edit")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 92, Col: 80}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 85, Col: 81}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"row g-3\"><div class=\"col-md-6\"><label class=\"form-label\" for=\"edit-title\">Title *</label> <input class=\"form-control\" id=\"edit-title\" type=\"text\" name=\"title\" required value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"><div class=\"form-grid\" style=\"display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;\"><div class=\"field-row-stacked\"><label for=\"edit-title\">Title *</label> <input id=\"edit-title\" type=\"text\" name=\"title\" required value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(form.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 95, Col: 103}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 89, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"></div><div class=\"col-md-6\"><label class=\"form-label\" for=\"edit-artist\">Artist</label> <input class=\"form-control\" id=\"edit-artist\" type=\"text\" name=\"artist\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" style=\"width: 100%;\"></div><div class=\"field-row-stacked\"><label for=\"edit-artist\">Artist</label> <input id=\"edit-artist\" type=\"text\" name=\"artist\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(form.Artist)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 99, Col: 97}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 93, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"></div><div class=\"col-md-6\"><label class=\"form-label\" for=\"edit-album\">Album</label> <input class=\"form-control\" id=\"edit-album\" type=\"text\" name=\"album\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" style=\"width: 100%;\"></div><div class=\"field-row-stacked\"><label for=\"edit-album\">Album</label> <input id=\"edit-album\" type=\"text\" name=\"album\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(form.Album)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 103, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 97, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"></div><div class=\"col-md-6\"><label class=\"form-label\" for=\"edit-duration\">Duration (seconds)</label> <input class=\"form-control\" id=\"edit-duration\" type=\"number\" min=\"0\" name=\"duration_seconds\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" style=\"width: 100%;\"></div><div class=\"field-row-stacked\"><label for=\"edit-duration\">Duration (seconds)</label> <input id=\"edit-duration\" type=\"number\" min=\"0\" name=\"duration_seconds\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(form.Duration)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 107, Col: 121}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 101, Col: 103}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"></div><div class=\"col-12\"><label class=\"form-label\" for=\"edit-file-path\">File Path</label> <input class=\"form-control\" id=\"edit-file-path\" type=\"text\" name=\"file_path\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" style=\"width: 100%;\"></div></div><div class=\"field-row-stacked\" style=\"margin-bottom: 6px;\"><label for=\"edit-file-path\">File Path</label> <input id=\"edit-file-path\" type=\"text\" name=\"file_path\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(form.FilePath)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 111, Col: 105}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 106, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" readonly></div><div class=\"col-12\"><label class=\"form-label\" for=\"edit-source-url\">Source URL</label> <input class=\"form-control\" id=\"edit-source-url\" type=\"url\" name=\"source_url\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" readonly style=\"width: 100%;\"></div><div class=\"field-row-stacked\" style=\"margin-bottom: 8px;\"><label for=\"edit-source-url\">Source URL</label> <input id=\"edit-source-url\" type=\"url\" name=\"source_url\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(form.SourceURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 115, Col: 107}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/ui/tracks.templ`, Line: 110, Col: 87}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\"></div><div class=\"col-12 d-flex gap-2\"><button type=\"submit\" class=\"btn btn-primary\">Update Track</button> <a href=\"/\" class=\"btn btn-outline-secondary\">Cancel</a></div></form></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" style=\"width: 100%;\"></div><div class=\"field-row\"><button type=\"submit\" class=\"btn-primary\">Update Track</button> <a class=\"btn\" href=\"/\">Cancel</a></div></form></fieldset>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

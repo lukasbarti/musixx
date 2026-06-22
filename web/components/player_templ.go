@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func PlayerBar() templ.Component {
+func PlayerToolbar() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +29,36 @@ func PlayerBar() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"player-bar\" class=\"player-bar inactive bg-dark text-white\" role=\"region\" aria-label=\"Now playing\"><div class=\"container py-3\"><div class=\"row align-items-center gy-3\"><div class=\"col-12 col-lg-4\"><div class=\"player-meta\"><div class=\"player-meta__title h6 mb-1\" id=\"player-track-title\">No track selected</div><div class=\"player-meta__details small\" id=\"player-track-meta\">Select a track to start playback.</div></div></div><div class=\"col-auto\"><div class=\"player-controls d-flex flex-wrap gap-2\"><button type=\"button\" class=\"btn btn-outline-light\" id=\"player-prev\" aria-label=\"Previous\" disabled><span aria-hidden=\"true\">Prev</span></button> <button type=\"button\" class=\"btn btn-primary\" id=\"player-toggle\" aria-label=\"Play\" disabled><span aria-hidden=\"true\">Play</span></button> <button type=\"button\" class=\"btn btn-outline-light\" id=\"player-stop\" aria-label=\"Stop\" disabled><span aria-hidden=\"true\">Stop</span></button> <button type=\"button\" class=\"btn btn-outline-light\" id=\"player-next\" aria-label=\"Next\" disabled><span aria-hidden=\"true\">Next</span></button> <button type=\"button\" class=\"btn btn-outline-light\" id=\"queue-toggle\" aria-controls=\"queue-panel\" aria-expanded=\"false\"><span aria-hidden=\"true\">Queue</span></button></div></div><div class=\"col-12 col-lg\"><div class=\"player-timeline d-flex flex-column gap-1\"><input type=\"range\" class=\"form-range\" id=\"player-progress\" min=\"0\" value=\"0\" step=\"0.1\" aria-label=\"Playback position\" disabled><div class=\"player-time small\" id=\"player-time\">--:-- / --:--</div></div></div><div class=\"col-auto\"><div class=\"player-volume d-flex align-items-center gap-2\"><label class=\"small mb-0\" for=\"player-volume-slider\">Vol</label> <input type=\"range\" class=\"form-range player-volume__slider\" id=\"player-volume-slider\" min=\"0\" max=\"100\" value=\"80\" aria-label=\"Volume\"></div></div><div class=\"col-auto\"><div class=\"player-speed d-flex align-items-center gap-2\"><label class=\"small mb-0\" for=\"player-speed-slider\">Speed</label> <input type=\"range\" class=\"form-range player-speed__slider\" id=\"player-speed-slider\" min=\"0.5\" max=\"2\" value=\"1\" step=\"0.01\" aria-label=\"Playback speed\"> <span class=\"player-speed__value small text-nowrap\" id=\"player-speed-value\">1.00x</span></div></div><div class=\"col-auto\"><div class=\"player-pitch d-flex align-items-center gap-2\"><label class=\"small mb-0\" for=\"player-pitch-slider\">Pitch</label> <input type=\"range\" class=\"form-range player-pitch__slider\" id=\"player-pitch-slider\" min=\"-12\" max=\"12\" value=\"0.0\" step=\"0.1\" aria-label=\"Pitch shift in semitones\"> <span class=\"player-pitch__value small text-nowrap\" id=\"player-pitch-value\">0 st</span></div></div></div></div><audio id=\"player-audio\" preload=\"none\" aria-hidden=\"true\"></audio></div><aside id=\"queue-panel\" class=\"queue-panel\" aria-labelledby=\"queue-heading\" aria-hidden=\"true\"><div class=\"queue-panel__header\"><div class=\"queue-panel__title-group\"><h2 class=\"queue-panel__heading h6 mb-0\" id=\"queue-heading\">Queue</h2><button type=\"button\" class=\"queue-panel__close\" id=\"queue-close\" aria-label=\"Close queue\">✕</button></div><div class=\"queue-panel__toolbar d-flex gap-2\"><button type=\"button\" class=\"btn btn-sm btn-outline-light\" id=\"queue-loop\" aria-pressed=\"false\">Loop</button> <button type=\"button\" class=\"btn btn-sm btn-outline-light\" id=\"queue-clear\">Clear</button></div></div><div class=\"queue-panel__body\"><p id=\"queue-empty\" class=\"queue-panel__empty text-muted\" hidden>The queue is empty. Add tracks to get started.</p><ul id=\"queue-list\" class=\"queue-panel__list\" aria-labelledby=\"queue-heading\"></ul></div></aside>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"player-bar\" class=\"app-toolbar inactive\" role=\"region\" aria-label=\"Player controls\"><button type=\"button\" class=\"sidebar-toggle\" id=\"sidebar-toggle\" aria-label=\"Navigation\">☰</button> <button type=\"button\" id=\"player-prev\" aria-label=\"Previous\" disabled>⏮ Prev</button> <button type=\"button\" class=\"btn-primary\" id=\"player-toggle\" aria-label=\"Play\" disabled>▶ Play</button> <button type=\"button\" id=\"player-stop\" aria-label=\"Stop\" disabled>⏹ Stop</button> <button type=\"button\" id=\"player-next\" aria-label=\"Next\" disabled>⏭ Next</button><div class=\"toolbar-sep\" aria-hidden=\"true\"></div><div class=\"player-meta\"><div class=\"player-meta__title\" id=\"player-track-title\">No track selected</div><div class=\"player-meta__details\" id=\"player-track-meta\"></div></div><div class=\"toolbar-sep\" aria-hidden=\"true\"></div><div class=\"player-timeline\"><input type=\"range\" id=\"player-progress\" min=\"0\" value=\"0\" step=\"0.1\" aria-label=\"Playback position\" disabled> <span class=\"player-time\" id=\"player-time\">--:-- / --:--</span></div><div class=\"toolbar-sep player-secondary\" aria-hidden=\"true\"></div><label class=\"player-secondary\" for=\"player-volume-slider\">Vol</label> <input type=\"range\" class=\"player-volume__slider player-secondary\" id=\"player-volume-slider\" min=\"0\" max=\"100\" value=\"80\" aria-label=\"Volume\"><div class=\"toolbar-sep player-secondary\" aria-hidden=\"true\"></div><label class=\"player-secondary\" for=\"player-speed-slider\">Speed</label> <input type=\"range\" class=\"player-speed__slider player-secondary\" id=\"player-speed-slider\" min=\"0.5\" max=\"2\" value=\"1\" step=\"0.01\" aria-label=\"Playback speed\"> <span class=\"player-speed__value player-secondary\" id=\"player-speed-value\">1.00x</span><div class=\"toolbar-sep player-secondary\" aria-hidden=\"true\"></div><label class=\"player-secondary\" for=\"player-pitch-slider\">Pitch</label> <input type=\"range\" class=\"player-pitch__slider player-secondary\" id=\"player-pitch-slider\" min=\"-12\" max=\"12\" value=\"0.0\" step=\"0.1\" aria-label=\"Pitch shift in semitones\"> <span class=\"player-pitch__value player-secondary\" id=\"player-pitch-value\">0 st</span><div class=\"toolbar-sep\" aria-hidden=\"true\"></div><button type=\"button\" id=\"queue-toggle\" aria-controls=\"queue-panel\" aria-expanded=\"false\">Queue ▶</button> <audio id=\"player-audio\" preload=\"none\" aria-hidden=\"true\"></audio></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func PlayerQueue() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div id=\"queue-panel\" class=\"queue-panel window\" aria-labelledby=\"queue-heading\" aria-hidden=\"true\"><div class=\"title-bar\"><div class=\"title-bar-text\" id=\"queue-heading\">Queue</div><div class=\"title-bar-controls\"><button class=\"is-close\" id=\"queue-close\" aria-label=\"Close queue\"></button></div></div><div class=\"window-body\"><div><button type=\"button\" id=\"queue-loop\" aria-pressed=\"false\">Loop</button> <button type=\"button\" id=\"queue-clear\">Clear</button></div><p id=\"queue-empty\" class=\"queue-panel__empty\" hidden>The queue is empty. Add tracks to get started.</p><ul id=\"queue-list\" class=\"queue-panel__list\" aria-labelledby=\"queue-heading\"></ul></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
