@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/lukasbarti/musixx#readme",
   "dependencies": {
+    "@hotwired/turbo": "^8.0.23",
     "@soundtouchjs/audio-worklet": "^2.0.4"
   },
   "devDependencies": {

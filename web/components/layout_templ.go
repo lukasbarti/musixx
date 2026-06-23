@@ -63,7 +63,7 @@ func Layout(title string, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"app-main\"><nav class=\"app-sidebar\"><ul class=\"tree-view has-connector\"><li><details open><summary>Library</summary><ul><li><a href=\"/?tab=tracks\">All Tracks</a></li><li><a href=\"/?tab=playlists\">Playlists</a></li></ul></details></li></ul></nav><div class=\"sidebar-backdrop\" id=\"sidebar-backdrop\"></div><main class=\"app-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"app-main\"><nav class=\"app-sidebar\"><ul class=\"tree-view has-connector\"><li><details open><summary>Library</summary><ul><li><a href=\"/?tab=tracks\">All Tracks</a></li><li><a href=\"/?tab=playlists\">Playlists</a></li></ul></details></li></ul></nav><div class=\"sidebar-backdrop\" id=\"sidebar-backdrop\" data-turbo-permanent></div><main class=\"app-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

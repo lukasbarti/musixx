@@ -407,6 +407,17 @@ export class PlayerController {
       localStorage.setItem(PITCH_SEMITONES_KEY, value.toString());
     });
 
+    document.addEventListener("turbo:load", () => {
+      if (this.currentTrackId) {
+        this.setActiveTrackRow(this.currentTrackId);
+      }
+    });
+
+    document.addEventListener("turbo:before-render", (event) => {
+      if (document.body.classList.contains("queue-open")) {
+        event.detail.newBody.classList.add("queue-open");
+      }
+    });
   }
 
   bindAudioEvents() {

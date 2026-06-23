@@ -1,7 +1,7 @@
 package components
 
 templ PlayerToolbar() {
-  <div id="player-bar" class="app-toolbar inactive" role="region" aria-label="Player controls">
+  <div id="player-bar" class="app-toolbar inactive" role="region" aria-label="Player controls" data-turbo-permanent>
     <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Navigation">☰</button>
     <button type="button" id="player-prev" aria-label="Previous" disabled>⏮ Prev</button>
     <button type="button" class="btn-primary" id="player-toggle" aria-label="Play" disabled>▶ Play</button>
@@ -35,7 +35,7 @@ templ PlayerToolbar() {
 }
 
 templ PlayerQueue() {
-  <div id="queue-panel" class="queue-panel window" aria-labelledby="queue-heading" aria-hidden="true">
+  <div id="queue-panel" class="queue-panel window" aria-labelledby="queue-heading" aria-hidden="true" data-turbo-permanent>
     <div class="title-bar">
       <div class="title-bar-text" id="queue-heading">Queue</div>
       <div class="title-bar-controls">
