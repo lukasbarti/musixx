@@ -149,7 +149,6 @@ templ LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, er
                       </form>
                     }
                     <div style="display: flex; gap: 4px;">
-                      <a class="btn" href={ "/tracks/" + strconv.FormatInt(track.ID, 10) + "/edit" }>Edit</a>
                       <form method="post" action={ "/tracks/" + strconv.FormatInt(track.ID, 10) + "/delete" }>
                         <button type="submit" class="btn-danger">Delete</button>
                       </form>

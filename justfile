@@ -11,6 +11,13 @@ bundle-css:
 build: bundle-js bundle-css
 	go build ./...
 
+build-platform os arch: bundle-js bundle-css
+	New-Item -ItemType Directory -Force dist | Out-Null
+	$env:CGO_ENABLED = "0"; $env:GOOS = "{{os}}"; $env:GOARCH = "{{arch}}"; 
+	go build -ldflags="-s -w" -trimpath -o "dist/musixx-{{os}}-{{arch}}{{ if os == "windows" { ".exe" } else { "" } }}" .
+
+dist: (build-platform "linux" "amd64") (build-platform "linux" "arm64") (build-platform "darwin" "amd64") (build-platform "darwin" "arm64") (build-platform "windows" "amd64") (build-platform "windows" "arm64")
+
 run:
 	go tool air --build.pre_cmd="just generate" --build.include_ext="css,js,templ,go" --build.exclude_regex="(_templ.go|.dist.js)" --build.args_bin="serve"
 
