@@ -31,7 +31,7 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o musixx .
 
 # ── Stage 3: Runtime ─────────────────────────────────────────────────────────
 FROM alpine:3
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata yt-dlp
 
 WORKDIR /app
 
@@ -47,7 +47,8 @@ VOLUME ["/app/music", "/app/data"]
 EXPOSE 8080
 
 ENV MUSIXX_STORAGE_DATABASE_PATH=/app/data/musixx.db \
-    MUSIXX_LIBRARY_MUSIC_DIR=/app/music
+    MUSIXX_LIBRARY_MUSIC_DIR=/app/music \
+    MUSIXX_TOOLS_YTDLP_PATH=/usr/bin/yt-dlp
 
 ENTRYPOINT ["./musixx"]
 CMD ["serve"]

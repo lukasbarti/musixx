@@ -9,7 +9,9 @@ services:
     volumes:
     - ./data:/app/data
     - ./music:/app/music
+    - ./cookies.txt:/app/cookies.txt
     environment:
       MUSIXX_HTTP_PORT: 8080
       MUSIXX_STORAGE_DATABASE_PATH: /app/data/musixx.db
       MUSIXX_LIBRARY_MUSIC_DIR: /app/music
+      MUSIXX_TOOLS_YTDLP_PATH: /usr/bin/yt-dlp
