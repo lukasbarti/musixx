@@ -39,7 +39,6 @@ COPY --from=builder /build/musixx           ./musixx
 COPY --from=builder /build/web/assets/css   ./web/assets/css
 COPY --from=builder /build/web/assets/app.css            ./web/assets/app.css
 COPY --from=builder /build/web/assets/app.dist.js        ./web/assets/app.dist.js
-COPY --from=builder /build/web/assets/app.dist.js.map    ./web/assets/app.dist.js.map
 COPY --from=builder /build/web/assets/soundtouch-processor.js ./web/assets/soundtouch-processor.js
 
 RUN mkdir -p /app/music /app/data
