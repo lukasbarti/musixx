@@ -1,4 +1,4 @@
-export const parseDuration = (value) => {
+export const parseDuration = (value: string | null | undefined): number => {
   const parsed = Number.parseInt(value ?? "", 10);
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return 0;
@@ -6,7 +6,7 @@ export const parseDuration = (value) => {
   return parsed;
 };
 
-export const formatTime = (seconds) => {
+export const formatTime = (seconds: number): string => {
   if (!Number.isFinite(seconds) || seconds < 0) {
     return "00:00";
   }

@@ -3,7 +3,7 @@ set shell := ["pwsh.exe", "-NoLogo", "-Command"]
 default: build
 
 bundle-js:
-	esbuild web/assets/src/app.js --minify --bundle --outfile=web/assets/app.dist.js --format=iife --target=es2019 --sourcemap
+	esbuild web/assets/src/app.ts --minify --bundle --outfile=web/assets/app.dist.js --format=iife --target=es2019 --sourcemap
 
 bundle-css:
 	npx @tailwindcss/cli -i ./web/assets/src/app.css -o ./web/assets/app.css --minify

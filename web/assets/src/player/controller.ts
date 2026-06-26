@@ -6,32 +6,28 @@ import {
   QUEUE_ADD_SELECTOR,
   VOLUME_KEY,
   PITCH_SEMITONES_KEY,
-  PLAYER_STATE_KEY,
-  QUEUE_PANEL_STATE_KEY,
 } from "../constants.js";
 import { formatTime } from "../utils/time.js";
-import { PlaybackQueue, createQueueEntryFromButton } from "./queue.js";
+import { PlaybackQueue, createQueueEntryFromButton, type QueueEntry } from "./queue.js";
 import { PlayerState } from "./state.js";
 import { QueuePanel } from "./panel.js";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
+import type { PlayerElements } from "./elements.js";
 
 const SOUND_TOUCH_PROCESSOR_PATH = "/assets/soundtouch-processor.js";
 
-const formatPitchLabel = (value) => `${value > 0 ? "+" : ""}${value} st`;
+const formatPitchLabel = (value: number): string => `${value > 0 ? "+" : ""}${value} st`;
 
-const escapeAttribute = (value) => {
+const escapeAttribute = (value: string | null | undefined): string => {
   if (!value) {
     return "";
   }
-  if (window.CSS?.escape) {
-    return CSS.escape(value);
-  }
-  return value.replace(/"/g, '\"');
+  return CSS.escape(value);
 };
 
-const collectEntriesFromButtons = (buttons) => {
-  const seen = new Set();
-  const entries = [];
+const collectEntriesFromButtons = (buttons: Element[]): QueueEntry[] => {
+  const seen = new Set<string>();
+  const entries: QueueEntry[] = [];
   buttons.forEach((button) => {
     const entry = createQueueEntryFromButton(button);
     if (entry && entry.id && entry.url && !seen.has(entry.id)) {
@@ -42,7 +38,7 @@ const collectEntriesFromButtons = (buttons) => {
   return entries;
 };
 
-const collectEntriesForGroup = (groupId) => {
+const collectEntriesForGroup = (groupId: string): QueueEntry[] => {
   if (!groupId) {
     return [];
   }
@@ -51,16 +47,17 @@ const collectEntriesForGroup = (groupId) => {
   return collectEntriesFromButtons(Array.from(buttons));
 };
 
-const collectAllEntries = () => collectEntriesFromButtons(Array.from(document.querySelectorAll(PLAY_BUTTON_SELECTOR)));
+const collectAllEntries = (): QueueEntry[] =>
+  collectEntriesFromButtons(Array.from(document.querySelectorAll(PLAY_BUTTON_SELECTOR)));
 
-const collectEntriesFromDom = () => {
+const collectEntriesFromDom = (): QueueEntry[] => {
   let entries = collectEntriesForGroup(DEFAULT_QUEUE_GROUP);
   if (entries.length) {
     return entries;
   }
   const firstButton = document.querySelector(PLAY_BUTTON_SELECTOR);
-  if (firstButton?.dataset.queueGroup) {
-    entries = collectEntriesForGroup(firstButton.dataset.queueGroup);
+  if (firstButton instanceof HTMLElement && firstButton.dataset["queueGroup"]) {
+    entries = collectEntriesForGroup(firstButton.dataset["queueGroup"]);
     if (entries.length) {
       return entries;
     }
@@ -69,7 +66,26 @@ const collectEntriesFromDom = () => {
 };
 
 export class PlayerController {
-  constructor(elements) {
+  private el: PlayerElements;
+  private state: PlayerState;
+  private queue: PlaybackQueue;
+  private queuePanel: QueuePanel | null;
+  private currentTrackId: string | null;
+  private durationSeconds: number;
+  private seeking: boolean;
+  private controlsEnabled: boolean;
+  private activeRow: Element | null;
+  private loop: boolean;
+  private tempo: number;
+  private pitchSemitones: number;
+  private volume: number;
+  private audioContext: AudioContext | null;
+  private mediaElementSource: MediaElementAudioSourceNode | null;
+  private soundTouchNode: SoundTouchNode | null;
+  private gainNode: GainNode | null;
+  private audioGraphReady: Promise<boolean | void>;
+
+  constructor(elements: PlayerElements) {
     this.el = elements;
     this.state = new PlayerState();
     this.queue = new PlaybackQueue();
@@ -90,7 +106,7 @@ export class PlayerController {
     this.audioGraphReady = Promise.resolve();
   }
 
-  init() {
+  init(): void {
     this.initializeUi();
 
     const defaultEntries = collectEntriesFromDom();
@@ -140,14 +156,14 @@ export class PlayerController {
     this.bindAudioEvents();
   }
 
-  initializeUi() {
+  private initializeUi(): void {
     this.setControlsEnabled(false);
     this.el.progress.value = "0";
     this.el.progress.max = "100";
     this.el.time.textContent = DEFAULT_TIME;
   }
 
-  setControlsEnabled(enabled) {
+  private setControlsEnabled(enabled: boolean): void {
     this.controlsEnabled = enabled;
     this.el.toggle.disabled = !enabled;
     this.el.stop.disabled = !enabled;
@@ -160,7 +176,7 @@ export class PlayerController {
     }
   }
 
-  updateNavButtons() {
+  private updateNavButtons(): void {
     const queueSize = this.queue.size();
     const hasCurrent = Boolean(this.currentTrackId && this.queue.getEntryById(this.currentTrackId));
     const loopEnabled = this.state.getLoop();
@@ -178,25 +194,29 @@ export class PlayerController {
     }
   }
 
-  updateTimeDisplay() {
+  private updateTimeDisplay(): void {
     if (!this.currentTrackId) {
       this.el.time.textContent = DEFAULT_TIME;
       return;
     }
 
     const current = formatTime(this.el.audio.currentTime ?? 0);
-    const totalSeconds = this.durationSeconds || (Number.isFinite(this.el.audio.duration) && this.el.audio.duration > 0 ? Math.floor(this.el.audio.duration) : 0);
+    const totalSeconds =
+      this.durationSeconds ||
+      (Number.isFinite(this.el.audio.duration) && this.el.audio.duration > 0
+        ? Math.floor(this.el.audio.duration)
+        : 0);
     const total = totalSeconds ? formatTime(totalSeconds) : "--:--";
     this.el.time.textContent = `${current} / ${total}`;
   }
 
-  setToggleText(isPlaying) {
+  private setToggleText(isPlaying: boolean): void {
     const label = isPlaying ? "Pause" : "Play";
     this.el.toggle.textContent = label;
     this.el.toggle.setAttribute("aria-label", label);
   }
 
-  setActiveTrackRow(trackId) {
+  private setActiveTrackRow(trackId: string | null): void {
     if (this.activeRow) {
       this.activeRow.classList.remove("table-active");
       this.activeRow = null;
@@ -213,7 +233,7 @@ export class PlayerController {
     }
   }
 
-  loadTrack(entry, { toggleIfSame = true, autoplay = true } = {}) {
+  private loadTrack(entry: QueueEntry, { toggleIfSame = true, autoplay = true } = {}): boolean {
     if (!entry || !entry.id || !entry.url) {
       return false;
     }
@@ -261,11 +281,11 @@ export class PlayerController {
     return true;
   }
 
-  handleQueueVisibilityChange(isOpen) {
+  private handleQueueVisibilityChange(isOpen: boolean): void {
     document.body.classList.toggle("queue-open", Boolean(isOpen));
   }
 
-  playQueueIndex(index, { autoplay = true } = {}) {
+  private playQueueIndex(index: number, { autoplay = true } = {}): boolean {
     const entry = this.queue.getEntryAt(index);
     if (!entry) {
       return false;
@@ -273,7 +293,7 @@ export class PlayerController {
     return this.loadTrack(entry, { toggleIfSame: false, autoplay });
   }
 
-  playNext({ autoplay = true } = {}) {
+  private playNext({ autoplay = true } = {}): boolean {
     if (this.queue.isEmpty()) {
       return false;
     }
@@ -287,7 +307,7 @@ export class PlayerController {
     return this.loadTrack(entry, { toggleIfSame: false, autoplay });
   }
 
-  playPrevious() {
+  private playPrevious(): boolean {
     if (this.queue.isEmpty()) {
       return false;
     }
@@ -301,7 +321,7 @@ export class PlayerController {
     return this.loadTrack(entry, { toggleIfSame: false, autoplay: true });
   }
 
-  bindDomEvents() {
+  private bindDomEvents(): void {
     document.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) {
@@ -314,7 +334,8 @@ export class PlayerController {
         if (!entry) {
           return;
         }
-        const groupId = playButton.dataset.queueGroup || DEFAULT_QUEUE_GROUP;
+        const groupId =
+          playButton instanceof HTMLElement ? playButton.dataset["queueGroup"] || DEFAULT_QUEUE_GROUP : DEFAULT_QUEUE_GROUP;
         const queueEntry = this.resetQueueForPlay(groupId, entry);
         if (!queueEntry) {
           return;
@@ -389,7 +410,6 @@ export class PlayerController {
 
     this.el.volume.addEventListener("input", () => {
       const sliderValue = Math.min(Math.max(Number.parseInt(this.el.volume.value ?? "0", 10) / 100, 0), 1);
-      // Convert linear slider to logarithmic volume (human perception)
       const volume = sliderValue === 0 ? 0 : Math.pow(sliderValue, 2);
       this.setVolume(volume);
       localStorage.setItem(VOLUME_KEY, volume.toString());
@@ -402,7 +422,7 @@ export class PlayerController {
     });
 
     this.el.pitch.addEventListener("input", () => {
-      const value = Math.min(Math.max(Number.parseFloat(this.el.pitch.value ?? "0", 10), -12), 12);
+      const value = Math.min(Math.max(Number.parseFloat(this.el.pitch.value ?? "0"), -12), 12);
       this.setPitchSemitones(value);
       localStorage.setItem(PITCH_SEMITONES_KEY, value.toString());
     });
@@ -414,13 +434,14 @@ export class PlayerController {
     });
 
     document.addEventListener("turbo:before-render", (event) => {
+      const turboEvent = event as CustomEvent<{ newBody: HTMLBodyElement }>;
       if (document.body.classList.contains("queue-open")) {
-        event.detail.newBody.classList.add("queue-open");
+        turboEvent.detail.newBody.classList.add("queue-open");
       }
     });
   }
 
-  bindAudioEvents() {
+  private bindAudioEvents(): void {
     this.el.audio.addEventListener("play", () => {
       this.el.bar.classList.remove("inactive");
       this.setControlsEnabled(true);
@@ -465,7 +486,7 @@ export class PlayerController {
     });
   }
 
-  async initializeAudioGraph() {
+  private async initializeAudioGraph(): Promise<boolean> {
     const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextCtor) {
       return false;
@@ -482,8 +503,8 @@ export class PlayerController {
     this.el.audio.mozPreservesPitch = false;
     this.el.audio.webkitPreservesPitch = false;
 
-    this.mediaElementSource.connect(this.soundTouchNode);
-    this.soundTouchNode.connect(this.gainNode);
+    this.mediaElementSource.connect(this.soundTouchNode as unknown as AudioNode);
+    this.soundTouchNode.connect(this.gainNode!);
     this.gainNode.connect(this.audioContext.destination);
 
     this.syncAudioParameters();
@@ -491,7 +512,7 @@ export class PlayerController {
     return true;
   }
 
-  syncAudioParameters() {
+  private syncAudioParameters(): void {
     this.el.audio.playbackRate = this.tempo;
     if (this.soundTouchNode) {
       this.soundTouchNode.playbackRate.value = this.tempo;
@@ -500,7 +521,7 @@ export class PlayerController {
     }
   }
 
-  async playCurrentTrack() {
+  private async playCurrentTrack(): Promise<boolean> {
     if (!this.currentTrackId) {
       return false;
     }
@@ -513,7 +534,7 @@ export class PlayerController {
     return true;
   }
 
-  ensureEntryInQueue(entry) {
+  private ensureEntryInQueue(entry: QueueEntry): void {
     const { added } = this.state.addEntry(entry);
     this.syncQueueFromState({ reRender: true });
     if (added) {
@@ -521,7 +542,7 @@ export class PlayerController {
     }
   }
 
-  resetQueueForPlay(groupId, entry) {
+  private resetQueueForPlay(groupId: string, entry: QueueEntry): QueueEntry | null {
     const desiredGroup = groupId || DEFAULT_QUEUE_GROUP;
     let queueEntries = collectEntriesForGroup(desiredGroup);
     if (!queueEntries.length && desiredGroup !== DEFAULT_QUEUE_GROUP) {
@@ -546,7 +567,7 @@ export class PlayerController {
     );
   }
 
-  handleQueueSelect(trackId) {
+  private handleQueueSelect(trackId: string): void {
     const entry = this.queue.getEntryById(trackId);
     if (!entry) {
       return;
@@ -554,7 +575,7 @@ export class PlayerController {
     this.loadTrack(entry, { toggleIfSame: false, autoplay: true });
   }
 
-  handleQueueRemove(trackId) {
+  private handleQueueRemove(trackId: string): void {
     const wasCurrent = this.currentTrackId === trackId;
     if (!this.state.removeEntryById(trackId)) {
       return;
@@ -574,7 +595,7 @@ export class PlayerController {
     }
   }
 
-  handleQueueReorder(fromIndex, toIndex) {
+  private handleQueueReorder(fromIndex: number, toIndex: number): void {
     if (!this.state.reorder(fromIndex, toIndex)) {
       return;
     }
@@ -584,7 +605,7 @@ export class PlayerController {
     }
   }
 
-  handleQueueClear() {
+  private handleQueueClear(): void {
     this.state.clearQueue();
     this.stopPlayback();
     this.currentTrackId = null;
@@ -594,14 +615,14 @@ export class PlayerController {
     this.updateTimeDisplay();
   }
 
-  handleLoopToggle() {
+  private handleLoopToggle(): void {
     const loop = this.state.toggleLoop();
     this.loop = loop;
     this.queuePanel?.setLoopActive(loop);
     this.updateNavButtons();
   }
 
-  stopPlayback() {
+  private stopPlayback(): void {
     this.el.audio.pause();
     this.el.audio.currentTime = 0;
     this.setToggleText(false);
@@ -612,7 +633,7 @@ export class PlayerController {
     this.setActiveTrackRow(null);
   }
 
-  syncQueueFromState({ reRender = false } = {}) {
+  private syncQueueFromState({ reRender = false } = {}): void {
     const snapshot = this.state.getSnapshot();
     this.queue.sync(snapshot.queue, snapshot.currentTrackId ?? this.currentTrackId ?? null);
     this.loop = snapshot.loop;
@@ -623,7 +644,7 @@ export class PlayerController {
     this.updateNavButtons();
   }
 
-  applyStoredVolume() {
+  private applyStoredVolume(): void {
     const storedVolume = localStorage.getItem(VOLUME_KEY);
     let initialVolume = 0.8;
     if (storedVolume === null) {
@@ -636,12 +657,11 @@ export class PlayerController {
     }
 
     this.setVolume(initialVolume);
-    // Convert logarithmic volume back to linear slider position
     const sliderValue = initialVolume === 0 ? 0 : Math.sqrt(initialVolume);
     this.el.volume.value = Math.round(sliderValue * 100).toString();
   }
 
-  setVolume(volume) {
+  private setVolume(volume: number): void {
     const normalizedVolume = Math.min(Math.max(volume, 0), 1);
     this.volume = normalizedVolume;
     if (this.gainNode) {
@@ -649,7 +669,7 @@ export class PlayerController {
     }
   }
 
-  setTempo(rate) {
+  private setTempo(rate: number): void {
     const normalizedRate = Math.min(Math.max(rate, 0.5), 2);
     this.tempo = normalizedRate;
     this.el.audio.playbackRate = normalizedRate;
@@ -660,7 +680,7 @@ export class PlayerController {
     this.el.speedValue.textContent = `${normalizedRate.toFixed(2)}x`;
   }
 
-  setPitchSemitones(value) {
+  private setPitchSemitones(value: number): void {
     const normalizedValue = Math.min(Math.max(value, -12), 12);
     this.pitchSemitones = normalizedValue;
     if (this.soundTouchNode) {
@@ -671,7 +691,7 @@ export class PlayerController {
     this.el.pitchValue.textContent = formatPitchLabel(normalizedValue);
   }
 
-  applyStoredTempo() {
+  private applyStoredTempo(): void {
     const storedRate = localStorage.getItem(PLAYBACK_RATE_KEY);
     let initialRate = 1;
 
@@ -686,7 +706,7 @@ export class PlayerController {
     localStorage.setItem(PLAYBACK_RATE_KEY, initialRate.toString());
   }
 
-  applyStoredPitch() {
+  private applyStoredPitch(): void {
     const storedPitch = localStorage.getItem(PITCH_SEMITONES_KEY);
     let initialPitch = 0;
 
@@ -700,4 +720,5 @@ export class PlayerController {
     this.setPitchSemitones(initialPitch);
     localStorage.setItem(PITCH_SEMITONES_KEY, initialPitch.toString());
   }
+
 }
