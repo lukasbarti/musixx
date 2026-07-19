@@ -41,27 +41,17 @@ templ LibraryContent(data LibraryPageData) {
 }
 
 templ LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, errors []string) {
-  <div style="display: flex; flex-direction: column; gap: 8px;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <strong>All Tracks</strong>
-      <a class="btn" href="/tracks/new">Add Track</a>
+  <div class="wa-stack">
+    <div class="wa-split">
+      <h2 class="pane-title">All Tracks</h2>
+      <wa-button href="/tracks/new" variant="brand">Add Track</wa-button>
     </div>
-    if len(errors) > 0 {
-      <fieldset style="border-color: #c00;">
-        <legend style="color: #c00;">Error</legend>
-        <p style="margin: 0; font-weight: 600;">Unable to add track to playlist:</p>
-        <ul style="margin: 4px 0 0 0; padding-left: 1.2em;">
-          for _, err := range errors {
-            <li>{ err }</li>
-          }
-        </ul>
-      </fieldset>
-    }
+    @formErrors("Unable to add track to playlist:", errors)
     if len(tracks) == 0 {
       <p>No tracks yet. Use the <a href="/tracks/new">Add Track</a> button to import music.</p>
     } else {
-      <div style="overflow-x: auto;">
-        <table style="width: 100%;">
+      <div class="table-scroll">
+        <table class="data-table">
           <thead>
             <tr>
               <th>Play</th>
@@ -76,83 +66,40 @@ templ LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, er
             for _, track := range tracks {
               <tr>
                 <td>
-                  <button
-                    type="button"
-                    class="btn-primary"
-                    data-action="play-track"
-                    data-queue-group="library-default"
-                    data-track-id={ strconv.FormatInt(track.ID, 10) }
-                    data-track-url={ "/media/" + strconv.FormatInt(track.ID, 10) }
-                    data-track-title={ track.Title }
-                    data-track-artist={ func() string {
-                      if track.Artist != nil { return *track.Artist }
-                      return ""
-                    }() }
-                    data-track-album={ func() string {
-                      if track.Album != nil { return *track.Album }
-                      return ""
-                    }() }
-                    data-track-duration={ func() string {
-                      if track.DurationSeconds != nil { return strconv.Itoa(*track.DurationSeconds) }
-                      return ""
-                    }() }
-                  >▶</button>
-                  <button
-                    type="button"
-                    data-action="queue-track"
-                    data-queue-group="library-default"
-                    data-track-id={ strconv.FormatInt(track.ID, 10) }
-                    data-track-url={ "/media/" + strconv.FormatInt(track.ID, 10) }
-                    data-track-title={ track.Title }
-                    data-track-artist={ func() string {
-                      if track.Artist != nil { return *track.Artist }
-                      return ""
-                    }() }
-                    data-track-album={ func() string {
-                      if track.Album != nil { return *track.Album }
-                      return ""
-                    }() }
-                    data-track-duration={ func() string {
-                      if track.DurationSeconds != nil { return strconv.Itoa(*track.DurationSeconds) }
-                      return ""
-                    }() }
-                  >+Queue</button>
+                  @TrackControls(track, "library-default")
                 </td>
                 <td><a href={ templ.SafeURL("/tracks/" + strconv.FormatInt(track.ID, 10) + "/edit") }><strong>{ track.Title }</strong></a></td>
                 <td class="col-artist">
                   if track.Artist != nil {
                     { *track.Artist }
                   } else {
-                    <span style="color: #999;">—</span>
+                    <span class="muted">—</span>
                   }
                 </td>
                 <td class="col-album">
                   if track.Album != nil {
                     { *track.Album }
                   } else {
-                    <span style="color: #999;">—</span>
+                    <span class="muted">—</span>
                   }
                 </td>
-                <td class="col-added" style="white-space: nowrap; color: #666; font-size: 0.85rem;">{ track.CreatedAt.Format("2006-01-02") }</td>
+                <td class="col-added nowrap muted">{ track.CreatedAt.Format("2006-01-02") }</td>
                 <td class="col-actions">
-                  <div style="display: flex; gap: 4px; flex-direction: column; align-items: flex-end;">
+                  <div class="row-actions">
                     if len(playlists) > 0 {
-                      <form method="post" action="/playlists/tracks" style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
+                      <form method="post" action="/playlists/tracks" class="wa-cluster add-to-playlist">
                         <input type="hidden" name="track_id" value={ strconv.FormatInt(track.ID, 10) } />
-                        <select name="playlist_id" required>
-                          <option value="" disabled selected>Add to playlist…</option>
+                        <wa-select name="playlist_id" required placeholder="Add to playlist…" size="small">
                           for _, playlist := range playlists {
-                            <option value={ strconv.FormatInt(playlist.ID, 10) }>{ playlist.Name }</option>
+                            <wa-option value={ strconv.FormatInt(playlist.ID, 10) }>{ playlist.Name }</wa-option>
                           }
-                        </select>
-                        <button type="submit" class="btn-success">Add</button>
+                        </wa-select>
+                        <wa-button type="submit" variant="success" size="small">Add</wa-button>
                       </form>
                     }
-                    <div style="display: flex; gap: 4px;">
-                      <form method="post" action={ "/tracks/" + strconv.FormatInt(track.ID, 10) + "/delete" }>
-                        <button type="submit" class="btn-danger">Delete</button>
-                      </form>
-                    </div>
+                    <form method="post" action={ "/tracks/" + strconv.FormatInt(track.ID, 10) + "/delete" }>
+                      <wa-button type="submit" variant="danger" size="small">Delete</wa-button>
+                    </form>
                   </div>
                 </td>
               </tr>
@@ -165,64 +112,53 @@ templ LibraryTracksPane(tracks []library.Track, playlists []library.Playlist, er
 }
 
 templ LibraryPlaylistsPane(playlists []library.Playlist, form PlaylistFormData, errors []string) {
-  <div style="display: flex; flex-direction: column; gap: 12px;">
-    <fieldset>
-      <legend>Create Playlist</legend>
-      if len(errors) > 0 {
-        <p style="color: #c00; margin: 0 0 8px 0; font-weight: 600;">Unable to create playlist:</p>
-        <ul style="color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;">
-          for _, err := range errors {
-            <li>{ err }</li>
-          }
-        </ul>
-      }
-      <form method="post" action="/playlists">
-        <div class="field-row-stacked" style="margin-bottom: 6px;">
-          <label for="playlist-name">Name *</label>
-          <input id="playlist-name" type="text" name="name" required value={ form.Name } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked" style="margin-bottom: 8px;">
-          <label for="playlist-description">Description</label>
-          <textarea id="playlist-description" name="description" rows="3" placeholder="What's the vibe?" style="width: 100%;">{ form.Description }</textarea>
-        </div>
-        <div class="field-row">
-          <button type="submit" class="btn-primary">Save Playlist</button>
-          <a class="btn" href="/?tab=playlists">Cancel</a>
+  <div class="wa-stack">
+    <wa-card class="page-card">
+      <h2 slot="header">Create Playlist</h2>
+      @formErrors("Unable to create playlist:", errors)
+      <form method="post" action="/playlists" class="wa-stack">
+        <wa-input label="Name" name="name" required value={ form.Name }></wa-input>
+        <wa-textarea label="Description" name="description" rows="3" placeholder="What's the vibe?" value={ form.Description }></wa-textarea>
+        <div class="wa-cluster">
+          <wa-button type="submit" variant="brand">Save Playlist</wa-button>
+          <wa-button href="/?tab=playlists">Cancel</wa-button>
         </div>
       </form>
-    </fieldset>
-    <fieldset>
-      <legend>Saved Playlists</legend>
+    </wa-card>
+    <wa-card class="page-card">
+      <h2 slot="header">Saved Playlists</h2>
       if len(playlists) == 0 {
-        <p style="color: #666; margin: 0;">No playlists yet. Create your first playlist above.</p>
+        <p class="muted">No playlists yet. Create your first playlist above.</p>
       } else {
-        <table style="width: 100%;">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th class="col-artist">Description</th>
-              <th class="col-added">Created</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            for _, playlist := range playlists {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td><strong>{ playlist.Name }</strong></td>
-                <td class="col-artist" style="color: #555;">
-                  if playlist.Description != nil && *playlist.Description != "" {
-                    { *playlist.Description }
-                  } else {
-                    <span style="color: #999;">No description</span>
-                  }
-                </td>
-                <td class="col-added" style="white-space: nowrap; color: #666; font-size: 0.85rem;">{ playlist.CreatedAt.Format("2006-01-02") }</td>
-                <td><a class="btn" href={ "/playlists/" + strconv.FormatInt(playlist.ID, 10) }>Open</a></td>
+                <th>Name</th>
+                <th class="col-artist">Description</th>
+                <th class="col-added">Created</th>
+                <th></th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              for _, playlist := range playlists {
+                <tr>
+                  <td><strong>{ playlist.Name }</strong></td>
+                  <td class="col-artist">
+                    if playlist.Description != nil && *playlist.Description != "" {
+                      { *playlist.Description }
+                    } else {
+                      <span class="muted">No description</span>
+                    }
+                  </td>
+                  <td class="col-added nowrap muted">{ playlist.CreatedAt.Format("2006-01-02") }</td>
+                  <td><wa-button href={ "/playlists/" + strconv.FormatInt(playlist.ID, 10) } size="small">Open</wa-button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       }
-    </fieldset>
+    </wa-card>
   </div>
 }

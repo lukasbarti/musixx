@@ -5,6 +5,8 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
+    // Web Awesome's own slider.d.ts has a variance error in its validators property.
+    "skipLibCheck": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"]
   },
   "include": ["web/assets/src/**/*"]

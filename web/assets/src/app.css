@@ -1,5 +1,3 @@
-@import "tailwindcss/utilities";
-
 /* ── App shell ─────────────────────────────────────────── */
 
 html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
@@ -11,15 +9,19 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
   overflow: hidden;
 }
 
-/* Override 7.css window-body default margin so it fills the space */
-.app-window > .window-body {
-  flex: 1;
-  overflow: hidden;
+.app-header {
+  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
+  align-items: center;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-xs) var(--wa-space-m);
+  border-bottom: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  background: var(--wa-color-surface-raised);
 }
+
+.app-header__title { font-weight: var(--wa-font-weight-bold); }
+
+.app-header__page { color: var(--wa-color-text-quiet); }
 
 .app-main {
   flex: 1;
@@ -30,15 +32,36 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
 .app-sidebar {
   width: 180px;
   flex-shrink: 0;
-  border-right: 1px solid #aca899;
+  border-right: var(--wa-border-width-s) solid var(--wa-color-surface-border);
   overflow-y: auto;
-  padding: 4px;
+  padding: var(--wa-space-s);
 }
+
+.app-sidebar__heading {
+  display: block;
+  font-weight: var(--wa-font-weight-bold);
+  font-size: var(--wa-font-size-s);
+  color: var(--wa-color-text-quiet);
+  margin-bottom: var(--wa-space-xs);
+}
+
+.app-sidebar ul { list-style: none; margin: 0; padding: 0; }
+.app-sidebar li { margin: 0; }
+
+.app-sidebar a {
+  display: block;
+  padding: var(--wa-space-2xs) var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-s);
+  text-decoration: none;
+  color: var(--wa-color-text-normal);
+}
+
+.app-sidebar a:hover { background: var(--wa-color-neutral-fill-quiet); }
 
 .app-content {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 14px;
+  padding: var(--wa-space-m) var(--wa-space-l);
   transition: margin-right 200ms ease;
 }
 
@@ -50,13 +73,12 @@ body.queue-open .app-content {
 
 .app-toolbar {
   flex-shrink: 0;
-  padding: 3px 6px;
-  border-bottom: 1px solid #aca899;
+  padding: var(--wa-space-xs) var(--wa-space-s);
+  border-bottom: var(--wa-border-width-s) solid var(--wa-color-surface-border);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  row-gap: 3px;
+  gap: var(--wa-space-xs);
   transition: opacity 200ms ease, filter 200ms ease;
 }
 
@@ -64,8 +86,6 @@ body.queue-open .app-content {
   opacity: 0.55;
   filter: grayscale(40%);
 }
-
-.app-toolbar button { min-width: 3rem; }
 
 .player-meta {
   min-width: 120px;
@@ -75,16 +95,16 @@ body.queue-open .app-content {
 }
 
 .player-meta__title {
-  font-weight: 600;
-  font-size: 0.82rem;
+  font-weight: var(--wa-font-weight-semibold);
+  font-size: var(--wa-font-size-s);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .player-meta__details {
-  font-size: 0.75rem;
-  color: #555;
+  font-size: var(--wa-font-size-xs);
+  color: var(--wa-color-text-quiet);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -95,20 +115,20 @@ body.queue-open .app-content {
   min-width: 100px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--wa-space-xs);
 }
 
-/* Use higher specificity (type + class) to beat 7.css's input[type="range"] rule */
-.player-timeline input[type="range"] { flex: 1; }
-input[type="range"].player-volume__slider { width: 80px; }
-input[type="range"].player-speed__slider  { width: 80px; }
-input[type="range"].player-pitch__slider  { width: 80px; }
+.player-timeline #player-progress { flex: 1; }
+
+.player-volume__slider,
+.player-speed__slider,
+.player-pitch__slider { width: 80px; }
 
 .player-time,
 .player-speed__value,
 .player-pitch__value {
   font-variant-numeric: tabular-nums;
-  font-size: 0.8rem;
+  font-size: var(--wa-font-size-s);
   white-space: nowrap;
 }
 
@@ -116,13 +136,16 @@ input[type="range"].player-pitch__slider  { width: 80px; }
 .player-pitch__value { min-width: 2.5rem; text-align: right; }
 
 .toolbar-sep {
-  width: 1px;
+  width: var(--wa-border-width-s);
   height: 18px;
-  background: #aca899;
-  margin: 0 2px;
+  background: var(--wa-color-surface-border);
+  margin: 0 var(--wa-space-3xs);
 }
 
-/* ── Queue panel (floating Window) ─────────────────────── */
+/* ── Queue panel ────────────────────────────────────────── */
+/* Deliberately not <wa-drawer>: that is always modal (native <dialog> + backdrop +
+   focus trap). This panel is non-modal — it pushes content and stays open while you
+   keep browsing. */
 
 :root { --queue-panel-width: 300px; }
 
@@ -139,18 +162,34 @@ input[type="range"].player-pitch__slider  { width: 80px; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--wa-color-surface-raised);
+  border-left: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+  box-shadow: var(--wa-shadow-l);
 }
 
 .queue-panel.is-open { transform: translateX(0); }
 
-.queue-panel > .window-body {
+.queue-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-xs) var(--wa-space-s);
+  border-bottom: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+}
+
+.queue-panel__heading { font-weight: var(--wa-font-weight-bold); }
+
+.queue-panel__body {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px;
+  gap: var(--wa-space-s);
+  padding: var(--wa-space-s);
 }
+
+.queue-panel__actions { display: flex; gap: var(--wa-space-xs); }
 
 .queue-panel__list {
   flex: 1;
@@ -163,90 +202,94 @@ input[type="range"].player-pitch__slider  { width: 80px; }
 .queue-panel__item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  border-bottom: 1px solid #d8d0c4;
+  gap: var(--wa-space-xs);
+  padding: var(--wa-space-2xs) var(--wa-space-xs);
+  border-bottom: var(--wa-border-width-s) solid var(--wa-color-surface-border);
   cursor: grab;
 }
 
 .queue-panel__item.is-active {
-  background: #c1d3ea;
-  font-weight: 600;
+  background: var(--wa-color-brand-fill-quiet);
+  font-weight: var(--wa-font-weight-semibold);
 }
 
 .queue-panel__item.is-dragging { opacity: 0.5; }
 
-.queue-panel__item.is-drop-target { border-top: 2px solid #0066cc; }
+.queue-panel__body > .queue-panel__list { min-height: 0; }
 
-.queue-panel__dropzone {
-  border: 2px dashed #aca899;
-  padding: 6px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #777;
+.queue-panel__drag-handle {
+  color: var(--wa-color-text-quiet);
+  cursor: grab;
 }
 
-.queue-panel__drag-handle { opacity: 0.5; cursor: grab; font-size: 1rem; }
-
-.queue-panel__remove {
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 3px !important;
-  min-width: unset !important;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.queue-panel__title { font-size: 0.875rem; font-weight: 600; }
-.queue-panel__meta  { font-size: 0.75rem; color: #555; }
-.queue-panel__empty { color: #666; margin: 0; }
-
-/* ── Semantic button color variants ────────────────────── */
-
-button.btn-primary, a.btn-primary {
-  background: linear-gradient(to bottom, #3d8fd4, #1e5fa0);
-  color: #fff;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.35);
-  border-color: #185090;
-}
-
-button.btn-danger, a.btn-danger {
-  background: linear-gradient(to bottom, #e06060, #be2e2e);
-  color: #fff;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.35);
-  border-color: #9c2020;
-}
-
-button.btn-success, a.btn-success {
-  background: linear-gradient(to bottom, #5aac5a, #3a823a);
-  color: #fff;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.35);
-  border-color: #2c6c2c;
-}
-
-a.btn { display: inline-block; text-decoration: none; }
+.queue-panel__title { font-size: var(--wa-font-size-s); font-weight: var(--wa-font-weight-semibold); }
+.queue-panel__meta  { font-size: var(--wa-font-size-xs); color: var(--wa-color-text-quiet); }
+.queue-panel__empty { color: var(--wa-color-text-quiet); margin: 0; }
+.queue-panel__body  { min-height: 0; }
 
 /* Queue loop active state (set by JS) */
-#queue-loop.is-active {
-  background: linear-gradient(to bottom, #3d8fd4, #1e5fa0);
-  color: #fff;
-  border-color: #185090;
+#queue-loop.is-active::part(base) {
+  background-color: var(--wa-color-brand-fill-loud);
+  color: var(--wa-color-brand-on-loud);
 }
 
-/* ── Table active row (set by JS) ───────────────────────── */
+/* ── Content ────────────────────────────────────────────── */
 
-tbody tr.table-active { background: #c1d3ea !important; }
+.pane-title { margin: 0; font-size: var(--wa-font-size-l); }
 
-/* ── Sidebar toggle + backdrop (base; shown only on mobile) ─ */
+.page-card { display: block; }
 
-.sidebar-toggle { display: none; }
+.muted { color: var(--wa-color-text-quiet); }
+.nowrap { white-space: nowrap; }
+
+.error-list { margin: var(--wa-space-2xs) 0 0 0; padding-left: 1.2em; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--wa-space-s);
+}
+
+.table-scroll { overflow-x: auto; }
+
+.data-table { width: 100%; }
+
+.data-table .col-added { font-size: var(--wa-font-size-s); }
+
+.row-actions {
+  display: flex;
+  gap: var(--wa-space-2xs);
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.add-to-playlist { flex-wrap: nowrap; }
+.add-to-playlist wa-select { min-width: 10rem; }
+
+.track-controls { display: flex; gap: var(--wa-space-2xs); }
+
+.playlist-meta { font-size: var(--wa-font-size-s); margin-bottom: var(--wa-space-s); }
+
+/* Table active row (set by JS) */
+tbody tr.table-active { background: var(--wa-color-brand-fill-quiet); }
+
+/* ── Sidebar toggle + backdrop (shown only on mobile) ───── */
+
+.sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--wa-space-2xs);
+  color: inherit;
+  font-size: var(--wa-font-size-l);
+}
 
 .sidebar-backdrop {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgb(0 0 0 / 0.3);
   z-index: 1039;
 }
 
@@ -256,42 +299,33 @@ tbody tr.table-active { background: #c1d3ea !important; }
 
 @media (max-width: 640px) {
 
-  /* Sidebar: slide-in overlay */
   .app-sidebar {
     position: fixed;
     top: 0; left: 0; bottom: 0;
     z-index: 1040;
     transform: translateX(-100%);
     transition: transform 220ms ease;
-    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
-    background: #fff;
+    box-shadow: var(--wa-shadow-l);
+    background: var(--wa-color-surface-raised);
   }
 
   .app-sidebar.is-open { transform: translateX(0); }
 
-  .sidebar-toggle { display: inline-block; }
+  .sidebar-toggle { display: inline-flex; }
 
-  /* Shrink meta block so timeline still has room */
   .player-meta { max-width: 140px; }
 
-  /* Secondary controls: hide separators to save space; make sliders expand */
   .toolbar-sep { display: none; }
-  input[type="range"].player-volume__slider,
-  input[type="range"].player-speed__slider,
-  input[type="range"].player-pitch__slider { flex: 1; min-width: 50px; width: auto; }
 
-  /* Table: hide non-essential columns */
+  .player-volume__slider,
+  .player-speed__slider,
+  .player-pitch__slider { flex: 1; min-width: 50px; width: auto; }
+
   .col-artist, .col-album, .col-added, .col-actions { display: none; }
 
-  /* Forms: single column */
-  .form-grid { grid-template-columns: 1fr !important; }
-  .form-grid .form-span-2 { grid-column: 1 !important; }
+  .form-grid { grid-template-columns: 1fr; }
 
-  /* Queue: don't shift content (panel overlaps) */
+  /* Queue overlaps rather than pushing on small screens */
   body.queue-open .app-content { margin-right: 0; }
-
-  /* Title bar: hide minimize/maximize (decorative-only on mobile) */
-  .app-window .title-bar-controls .is-minimize,
-  .app-window .title-bar-controls .is-maximize { display: none; }
 
 }

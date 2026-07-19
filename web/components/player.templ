@@ -2,11 +2,22 @@ package components
 
 templ PlayerToolbar() {
   <div id="player-bar" class="app-toolbar inactive" role="region" aria-label="Player controls" data-turbo-permanent>
-    <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Navigation">☰</button>
-    <button type="button" id="player-prev" aria-label="Previous" disabled>⏮ Prev</button>
-    <button type="button" class="btn-primary" id="player-toggle" aria-label="Play" disabled>▶ Play</button>
-    <button type="button" id="player-stop" aria-label="Stop" disabled>⏹ Stop</button>
-    <button type="button" id="player-next" aria-label="Next" disabled>⏭ Next</button>
+    <wa-button type="button" size="small" id="player-prev" aria-label="Previous" disabled>
+      <wa-icon slot="start" name="backward-step"></wa-icon>
+      Prev
+    </wa-button>
+    <wa-button type="button" size="small" variant="brand" id="player-toggle" aria-label="Play" disabled>
+      <wa-icon slot="start" id="player-toggle-icon" name="play"></wa-icon>
+      <span id="player-toggle-label">Play</span>
+    </wa-button>
+    <wa-button type="button" size="small" id="player-stop" aria-label="Stop" disabled>
+      <wa-icon slot="start" name="stop"></wa-icon>
+      Stop
+    </wa-button>
+    <wa-button type="button" size="small" id="player-next" aria-label="Next" disabled>
+      <wa-icon slot="start" name="forward-step"></wa-icon>
+      Next
+    </wa-button>
     <div class="toolbar-sep" aria-hidden="true"></div>
     <div class="player-meta">
       <div class="player-meta__title" id="player-track-title">No track selected</div>
@@ -14,38 +25,38 @@ templ PlayerToolbar() {
     </div>
     <div class="toolbar-sep" aria-hidden="true"></div>
     <div class="player-timeline">
-      <input type="range" id="player-progress" min="0" value="0" step="0.1" aria-label="Playback position" disabled />
+      <wa-slider id="player-progress" min="0" max="100" value="0" step="0.1" size="small" aria-label="Playback position" disabled></wa-slider>
       <span class="player-time" id="player-time">--:-- / --:--</span>
     </div>
     <div class="toolbar-sep player-secondary" aria-hidden="true"></div>
     <label class="player-secondary" for="player-volume-slider">Vol</label>
-    <input type="range" class="player-volume__slider player-secondary" id="player-volume-slider" min="0" max="100" value="80" aria-label="Volume" />
+    <wa-slider class="player-volume__slider player-secondary" id="player-volume-slider" min="0" max="100" value="80" size="small" with-tooltip aria-label="Volume"></wa-slider>
     <div class="toolbar-sep player-secondary" aria-hidden="true"></div>
     <label class="player-secondary" for="player-speed-slider">Speed</label>
-    <input type="range" class="player-speed__slider player-secondary" id="player-speed-slider" min="0.5" max="2" value="1" step="0.01" aria-label="Playback speed" />
+    <wa-slider class="player-speed__slider player-secondary" id="player-speed-slider" min="0.5" max="2" value="1" step="0.01" size="small" aria-label="Playback speed"></wa-slider>
     <span class="player-speed__value player-secondary" id="player-speed-value">1.00x</span>
     <div class="toolbar-sep player-secondary" aria-hidden="true"></div>
     <label class="player-secondary" for="player-pitch-slider">Pitch</label>
-    <input type="range" class="player-pitch__slider player-secondary" id="player-pitch-slider" min="-12" max="12" value="0.0" step="0.1" aria-label="Pitch shift in semitones" />
+    <wa-slider class="player-pitch__slider player-secondary" id="player-pitch-slider" min="-12" max="12" value="0" step="0.1" size="small" aria-label="Pitch shift in semitones"></wa-slider>
     <span class="player-pitch__value player-secondary" id="player-pitch-value">0 st</span>
     <div class="toolbar-sep" aria-hidden="true"></div>
-    <button type="button" id="queue-toggle" aria-controls="queue-panel" aria-expanded="false">Queue ▶</button>
+    <wa-button type="button" size="small" id="queue-toggle" aria-controls="queue-panel" aria-expanded="false">Queue</wa-button>
     <audio id="player-audio" preload="none" aria-hidden="true"></audio>
   </div>
 }
 
 templ PlayerQueue() {
-  <div id="queue-panel" class="queue-panel window" aria-labelledby="queue-heading" aria-hidden="true" data-turbo-permanent>
-    <div class="title-bar">
-      <div class="title-bar-text" id="queue-heading">Queue</div>
-      <div class="title-bar-controls">
-        <button class="is-close" id="queue-close" aria-label="Close queue"></button>
-      </div>
+  <div id="queue-panel" class="queue-panel" aria-labelledby="queue-heading" aria-hidden="true" data-turbo-permanent>
+    <div class="queue-panel__header">
+      <span class="queue-panel__heading" id="queue-heading">Queue</span>
+      <wa-button type="button" appearance="plain" size="small" id="queue-close" aria-label="Close queue">
+        <wa-icon name="xmark" label="Close queue"></wa-icon>
+      </wa-button>
     </div>
-    <div class="window-body">
-      <div>
-        <button type="button" id="queue-loop" aria-pressed="false">Loop</button>
-        <button type="button" id="queue-clear">Clear</button>
+    <div class="queue-panel__body">
+      <div class="queue-panel__actions">
+        <wa-button type="button" size="small" id="queue-loop" aria-pressed="false">Loop</wa-button>
+        <wa-button type="button" size="small" id="queue-clear">Clear</wa-button>
       </div>
       <p id="queue-empty" class="queue-panel__empty" hidden>The queue is empty. Add tracks to get started.</p>
       <ul id="queue-list" class="queue-panel__list" aria-labelledby="queue-heading"></ul>

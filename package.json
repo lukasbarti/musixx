@@ -22,15 +22,15 @@
   },
   "homepage": "https://github.com/lukasbarti/musixx#readme",
   "dependencies": {
+    "@awesome.me/webawesome": "^3.10.0",
     "@hotwired/turbo": "^8.0.23",
     "@soundtouchjs/audio-worklet": "^2.0.4",
     "sortablejs": "^1.15.7"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.3.1",
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@types/sortablejs": "^1.15.9",
     "esbuild": "^0.25.0",
-    "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3"
   }
 }

@@ -3,8 +3,59 @@ package ui
 import (
   "strconv"
 
+  "github.com/lukasbarti/musixx/internal/library"
   "github.com/lukasbarti/musixx/web/components"
 )
+
+func derefString(s *string) string {
+  if s != nil {
+    return *s
+  }
+  return ""
+}
+
+func durationAttr(d *int) string {
+  if d != nil {
+    return strconv.Itoa(*d)
+  }
+  return ""
+}
+
+// Play / queue controls for one track. The data-* attributes are the contract with
+// controller.ts (see PLAY_BUTTON_SELECTOR / QUEUE_ADD_SELECTOR in constants.ts).
+templ TrackControls(track library.Track, queueGroup string) {
+  <div class="track-controls">
+    <wa-button
+      type="button"
+      size="small"
+      variant="brand"
+      aria-label={ "Play " + track.Title }
+      data-action="play-track"
+      data-queue-group={ queueGroup }
+      data-track-id={ strconv.FormatInt(track.ID, 10) }
+      data-track-url={ "/media/" + strconv.FormatInt(track.ID, 10) }
+      data-track-title={ track.Title }
+      data-track-artist={ derefString(track.Artist) }
+      data-track-album={ derefString(track.Album) }
+      data-track-duration={ durationAttr(track.DurationSeconds) }
+    >
+      <wa-icon name="play"></wa-icon>
+    </wa-button>
+    <wa-button
+      type="button"
+      size="small"
+      aria-label={ "Add " + track.Title + " to queue" }
+      data-action="queue-track"
+      data-queue-group={ queueGroup }
+      data-track-id={ strconv.FormatInt(track.ID, 10) }
+      data-track-url={ "/media/" + strconv.FormatInt(track.ID, 10) }
+      data-track-title={ track.Title }
+      data-track-artist={ derefString(track.Artist) }
+      data-track-album={ derefString(track.Album) }
+      data-track-duration={ durationAttr(track.DurationSeconds) }
+    >+Queue</wa-button>
+  </div>
+}
 
 type TrackFormData struct {
   Title     string
@@ -19,51 +70,39 @@ templ TrackFormPage(form TrackFormData, errors []string) {
   @components.Layout("Add Track", TrackFormContent(form, errors))
 }
 
-templ TrackFormContent(form TrackFormData, errors []string) {
-  <fieldset>
-    <legend>Add Track</legend>
-    <p style="margin: 0 0 8px 0; color: #555;">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p>
-    if len(errors) > 0 {
-      <p style="color: #c00; font-weight: 600; margin: 0 0 4px 0;">Unable to save track:</p>
-      <ul style="color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;">
+templ formErrors(heading string, errors []string) {
+  if len(errors) > 0 {
+    <wa-callout variant="danger">
+      <strong>{ heading }</strong>
+      <ul class="error-list">
         for _, err := range errors {
           <li>{ err }</li>
         }
       </ul>
-    }
-    <form method="post" action="/tracks/new">
-      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
-        <div class="field-row-stacked">
-          <label for="title">Title *</label>
-          <input id="title" type="text" name="title" required value={ form.Title } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked">
-          <label for="artist">Artist</label>
-          <input id="artist" type="text" name="artist" value={ form.Artist } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked">
-          <label for="album">Album</label>
-          <input id="album" type="text" name="album" value={ form.Album } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked">
-          <label for="duration">Duration (seconds)</label>
-          <input id="duration" type="number" min="0" name="duration_seconds" value={ form.Duration } style="width: 100%;" />
-        </div>
+    </wa-callout>
+  }
+}
+
+templ TrackFormContent(form TrackFormData, errors []string) {
+  <wa-card class="page-card">
+    <h2 slot="header">Add Track</h2>
+    <p class="muted">Provide metadata and either a local Opus file path or a source URL for yt-dlp to download.</p>
+    @formErrors("Unable to save track:", errors)
+    <form method="post" action="/tracks/new" class="wa-stack">
+      <div class="form-grid">
+        <wa-input label="Title" name="title" required value={ form.Title }></wa-input>
+        <wa-input label="Artist" name="artist" value={ form.Artist }></wa-input>
+        <wa-input label="Album" name="album" value={ form.Album }></wa-input>
+        <wa-input label="Duration (seconds)" type="number" min="0" name="duration_seconds" value={ form.Duration }></wa-input>
       </div>
-      <div class="form-span-2 field-row-stacked" style="margin-bottom: 6px;">
-        <label for="file_path">File Path</label>
-        <input id="file_path" type="text" name="file_path" value={ form.FilePath } placeholder="music/example.opus" style="width: 100%;" />
-      </div>
-      <div class="form-span-2 field-row-stacked" style="margin-bottom: 8px;">
-        <label for="source_url">Source URL</label>
-        <input id="source_url" type="url" name="source_url" value={ form.SourceURL } placeholder="https://www.youtube.com/watch?v=..." style="width: 100%;" />
-      </div>
-      <div class="field-row">
-        <button type="submit" class="btn-primary">Save Track</button>
-        <a class="btn" href="/">Cancel</a>
+      <wa-input label="File Path" name="file_path" value={ form.FilePath } placeholder="music/example.opus"></wa-input>
+      <wa-input label="Source URL" type="url" name="source_url" value={ form.SourceURL } placeholder="https://www.youtube.com/watch?v=..."></wa-input>
+      <div class="wa-cluster">
+        <wa-button type="submit" variant="brand">Save Track</wa-button>
+        <wa-button href="/">Cancel</wa-button>
       </div>
     </form>
-  </fieldset>
+  </wa-card>
 }
 
 templ TrackEditPage(id int64, form TrackFormData, errors []string) {
@@ -71,48 +110,23 @@ templ TrackEditPage(id int64, form TrackFormData, errors []string) {
 }
 
 templ TrackEditContent(id int64, form TrackFormData, errors []string) {
-  <fieldset>
-    <legend>Edit Track</legend>
-    <p style="margin: 0 0 8px 0; color: #555;">Update the metadata associated with this track.</p>
-    if len(errors) > 0 {
-      <p style="color: #c00; font-weight: 600; margin: 0 0 4px 0;">Unable to update track:</p>
-      <ul style="color: #c00; margin: 0 0 8px 0; padding-left: 1.2em;">
-        for _, err := range errors {
-          <li>{ err }</li>
-        }
-      </ul>
-    }
-    <form method="post" action={ "/tracks/" + strconv.FormatInt(id, 10) + "/edit" }>
-      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
-        <div class="field-row-stacked">
-          <label for="edit-title">Title *</label>
-          <input id="edit-title" type="text" name="title" required value={ form.Title } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked">
-          <label for="edit-artist">Artist</label>
-          <input id="edit-artist" type="text" name="artist" value={ form.Artist } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked">
-          <label for="edit-album">Album</label>
-          <input id="edit-album" type="text" name="album" value={ form.Album } style="width: 100%;" />
-        </div>
-        <div class="field-row-stacked">
-          <label for="edit-duration">Duration (seconds)</label>
-          <input id="edit-duration" type="number" min="0" name="duration_seconds" value={ form.Duration } style="width: 100%;" />
-        </div>
+  <wa-card class="page-card">
+    <h2 slot="header">Edit Track</h2>
+    <p class="muted">Update the metadata associated with this track.</p>
+    @formErrors("Unable to update track:", errors)
+    <form method="post" action={ "/tracks/" + strconv.FormatInt(id, 10) + "/edit" } class="wa-stack">
+      <div class="form-grid">
+        <wa-input label="Title" name="title" required value={ form.Title }></wa-input>
+        <wa-input label="Artist" name="artist" value={ form.Artist }></wa-input>
+        <wa-input label="Album" name="album" value={ form.Album }></wa-input>
+        <wa-input label="Duration (seconds)" type="number" min="0" name="duration_seconds" value={ form.Duration }></wa-input>
       </div>
-      <div class="field-row-stacked" style="margin-bottom: 6px;">
-        <label for="edit-file-path">File Path</label>
-        <input id="edit-file-path" type="text" name="file_path" value={ form.FilePath } readonly style="width: 100%;" />
-      </div>
-      <div class="field-row-stacked" style="margin-bottom: 8px;">
-        <label for="edit-source-url">Source URL</label>
-        <input id="edit-source-url" type="url" name="source_url" value={ form.SourceURL } style="width: 100%;" />
-      </div>
-      <div class="field-row">
-        <button type="submit" class="btn-primary">Update Track</button>
-        <a class="btn" href="/">Cancel</a>
+      <wa-input label="File Path" name="file_path" value={ form.FilePath } readonly></wa-input>
+      <wa-input label="Source URL" type="url" name="source_url" value={ form.SourceURL }></wa-input>
+      <div class="wa-cluster">
+        <wa-button type="submit" variant="brand">Update Track</wa-button>
+        <wa-button href="/">Cancel</wa-button>
       </div>
     </form>
-  </fieldset>
+  </wa-card>
 }

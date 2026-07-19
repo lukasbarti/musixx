@@ -1,4 +1,5 @@
 import Sortable from "sortablejs";
+import type WaButton from "@awesome.me/webawesome/dist/components/button/button.js";
 import { QUEUE_PANEL_STATE_KEY } from "../constants.js";
 import type { QueueEntry } from "./queue.js";
 
@@ -8,10 +9,10 @@ const ACTIVE_ITEM_CLASS = "is-active";
 export interface QueuePanelElements {
   queuePanel: HTMLElement;
   queueList: HTMLUListElement;
-  queueToggle: HTMLButtonElement;
-  queueClose: HTMLButtonElement;
-  queueClear: HTMLButtonElement;
-  queueLoop: HTMLButtonElement;
+  queueToggle: WaButton;
+  queueClose: WaButton;
+  queueClear: WaButton;
+  queueLoop: WaButton;
   queueEmpty: HTMLElement | null;
 }
 
@@ -180,10 +181,11 @@ export class QueuePanel {
       item.classList.add(ACTIVE_ITEM_CLASS);
     }
 
-    const dragHandle = document.createElement("span");
+    // Class name is load-bearing: Sortable is configured with handle: ".queue-panel__drag-handle".
+    const dragHandle = document.createElement("wa-icon");
     dragHandle.className = "queue-panel__drag-handle";
     dragHandle.setAttribute("aria-hidden", "true");
-    dragHandle.textContent = "≡";
+    dragHandle.setAttribute("name", "grip-lines");
     item.appendChild(dragHandle);
 
     const body = document.createElement("div");
@@ -205,12 +207,16 @@ export class QueuePanel {
     const actions = document.createElement("div");
     actions.className = "queue-panel__actions";
 
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
+    const removeBtn = document.createElement("wa-button");
+    removeBtn.setAttribute("type", "button");
+    removeBtn.setAttribute("appearance", "plain");
+    removeBtn.setAttribute("size", "small");
     removeBtn.className = "queue-panel__remove";
     removeBtn.setAttribute("data-action", "remove");
     removeBtn.setAttribute("aria-label", "Remove from queue");
-    removeBtn.textContent = "✕";
+    const removeIcon = document.createElement("wa-icon");
+    removeIcon.setAttribute("name", "xmark");
+    removeBtn.appendChild(removeIcon);
     actions.appendChild(removeBtn);
 
     item.appendChild(actions);

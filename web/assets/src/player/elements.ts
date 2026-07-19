@@ -1,25 +1,31 @@
+import type WaButton from "@awesome.me/webawesome/dist/components/button/button.js";
+import type WaIcon from "@awesome.me/webawesome/dist/components/icon/icon.js";
+import type WaSlider from "@awesome.me/webawesome/dist/components/slider/slider.js";
+
 export interface PlayerElements {
   audio: HTMLAudioElement;
   bar: HTMLElement;
   title: HTMLElement;
   meta: HTMLElement;
   time: HTMLElement;
-  progress: HTMLInputElement;
-  toggle: HTMLButtonElement;
-  stop: HTMLButtonElement;
-  volume: HTMLInputElement;
-  speed: HTMLInputElement;
+  progress: WaSlider;
+  toggle: WaButton;
+  toggleIcon: WaIcon;
+  toggleLabel: HTMLElement;
+  stop: WaButton;
+  volume: WaSlider;
+  speed: WaSlider;
   speedValue: HTMLElement;
-  pitch: HTMLInputElement;
+  pitch: WaSlider;
   pitchValue: HTMLElement;
   queuePanel: HTMLElement;
   queueList: HTMLUListElement;
-  queueToggle: HTMLButtonElement;
-  queueClose: HTMLButtonElement;
-  queueClear: HTMLButtonElement;
-  queueLoop: HTMLButtonElement;
-  prev: HTMLButtonElement | null;
-  next: HTMLButtonElement | null;
+  queueToggle: WaButton;
+  queueClose: WaButton;
+  queueClear: WaButton;
+  queueLoop: WaButton;
+  prev: WaButton | null;
+  next: WaButton | null;
   queueEmpty: HTMLElement | null;
 }
 
@@ -31,6 +37,8 @@ const requiredElementIds: Record<string, string> = {
   time: "player-time",
   progress: "player-progress",
   toggle: "player-toggle",
+  toggleIcon: "player-toggle-icon",
+  toggleLabel: "player-toggle-label",
   stop: "player-stop",
   volume: "player-volume-slider",
   speed: "player-speed-slider",

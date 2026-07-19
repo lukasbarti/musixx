@@ -1,6 +1,20 @@
+import "./wa-setup.js";
+import "@awesome.me/webawesome/dist/components/button/button.js";
+import "@awesome.me/webawesome/dist/components/callout/callout.js";
+import "@awesome.me/webawesome/dist/components/card/card.js";
+import "@awesome.me/webawesome/dist/components/icon/icon.js";
+import "@awesome.me/webawesome/dist/components/input/input.js";
+import "@awesome.me/webawesome/dist/components/option/option.js";
+import "@awesome.me/webawesome/dist/components/select/select.js";
+import "@awesome.me/webawesome/dist/components/slider/slider.js";
+import "@awesome.me/webawesome/dist/components/textarea/textarea.js";
+import { preventTurboFouce } from "@awesome.me/webawesome/dist/webawesome.js";
 import "@hotwired/turbo";
 import { resolvePlayerElements } from "./player/elements.js";
 import { PlayerController } from "./player/controller.js";
+
+// Without this, every Turbo navigation flashes unregistered custom elements.
+preventTurboFouce();
 
 const elements = resolvePlayerElements();
 if (elements) {

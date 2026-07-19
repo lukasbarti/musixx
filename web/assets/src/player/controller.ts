@@ -158,8 +158,8 @@ export class PlayerController {
 
   private initializeUi(): void {
     this.setControlsEnabled(false);
-    this.el.progress.value = "0";
-    this.el.progress.max = "100";
+    this.el.progress.value = 0;
+    this.el.progress.max = 100;
     this.el.time.textContent = DEFAULT_TIME;
   }
 
@@ -212,7 +212,10 @@ export class PlayerController {
 
   private setToggleText(isPlaying: boolean): void {
     const label = isPlaying ? "Pause" : "Play";
-    this.el.toggle.textContent = label;
+    // Only the label span is rewritten — assigning to the button's textContent would
+    // destroy the slotted <wa-icon>.
+    this.el.toggleLabel.textContent = label;
+    this.el.toggleIcon.name = isPlaying ? "pause" : "play";
     this.el.toggle.setAttribute("aria-label", label);
   }
 
@@ -261,8 +264,8 @@ export class PlayerController {
     this.el.bar.classList.remove("inactive");
     this.setControlsEnabled(true);
 
-    this.el.progress.value = "0";
-    this.el.progress.max = this.durationSeconds ? this.durationSeconds.toString() : "100";
+    this.el.progress.value = 0;
+    this.el.progress.max = this.durationSeconds || 100;
 
     this.el.audio.src = entry.url;
     this.syncAudioParameters();
@@ -378,7 +381,7 @@ export class PlayerController {
     this.el.progress.addEventListener("input", () => {
       this.seeking = true;
       if (this.durationSeconds || this.el.audio.duration) {
-        const target = Number.parseFloat(this.el.progress.value ?? "0");
+        const target = this.el.progress.value;
         if (Number.isFinite(target)) {
           this.el.audio.currentTime = target;
           this.updateTimeDisplay();
@@ -409,20 +412,20 @@ export class PlayerController {
     }
 
     this.el.volume.addEventListener("input", () => {
-      const sliderValue = Math.min(Math.max(Number.parseInt(this.el.volume.value ?? "0", 10) / 100, 0), 1);
+      const sliderValue = Math.min(Math.max(this.el.volume.value / 100, 0), 1);
       const volume = sliderValue === 0 ? 0 : Math.pow(sliderValue, 2);
       this.setVolume(volume);
       localStorage.setItem(VOLUME_KEY, volume.toString());
     });
 
     this.el.speed.addEventListener("input", () => {
-      const rate = Math.min(Math.max(Number.parseFloat(this.el.speed.value ?? "1"), 0.5), 2);
+      const rate = Math.min(Math.max(this.el.speed.value, 0.5), 2);
       this.setTempo(rate);
       localStorage.setItem(PLAYBACK_RATE_KEY, rate.toString());
     });
 
     this.el.pitch.addEventListener("input", () => {
-      const value = Math.min(Math.max(Number.parseFloat(this.el.pitch.value ?? "0"), -12), 12);
+      const value = Math.min(Math.max(this.el.pitch.value, -12), 12);
       this.setPitchSemitones(value);
       localStorage.setItem(PITCH_SEMITONES_KEY, value.toString());
     });
@@ -458,7 +461,7 @@ export class PlayerController {
       if (!this.seeking) {
         const computedDuration = Number.isFinite(this.el.audio.duration) ? Math.floor(this.el.audio.duration) : 0;
         this.durationSeconds = computedDuration || this.durationSeconds;
-        this.el.progress.max = this.durationSeconds ? this.durationSeconds.toString() : "100";
+        this.el.progress.max = this.durationSeconds || 100;
         this.updateTimeDisplay();
       }
     });
@@ -470,16 +473,16 @@ export class PlayerController {
       const current = this.el.audio.currentTime ?? 0;
       if (!this.durationSeconds && Number.isFinite(this.el.audio.duration)) {
         this.durationSeconds = Math.floor(this.el.audio.duration);
-        this.el.progress.max = this.durationSeconds ? this.durationSeconds.toString() : "100";
+        this.el.progress.max = this.durationSeconds || 100;
       }
-      this.el.progress.value = current.toString();
+      this.el.progress.value = current;
       this.updateTimeDisplay();
     });
 
     this.el.audio.addEventListener("ended", () => {
       if (!this.playNext()) {
         this.setToggleText(false);
-        this.el.progress.value = this.durationSeconds ? this.durationSeconds.toString() : "0";
+        this.el.progress.value = this.durationSeconds || 0;
         this.updateTimeDisplay();
         this.updateNavButtons();
       }
@@ -627,7 +630,7 @@ export class PlayerController {
     this.el.audio.currentTime = 0;
     this.setToggleText(false);
     this.durationSeconds = 0;
-    this.el.progress.value = "0";
+    this.el.progress.value = 0;
     this.updateTimeDisplay();
     this.setControlsEnabled(false);
     this.setActiveTrackRow(null);
@@ -658,7 +661,7 @@ export class PlayerController {
 
     this.setVolume(initialVolume);
     const sliderValue = initialVolume === 0 ? 0 : Math.sqrt(initialVolume);
-    this.el.volume.value = Math.round(sliderValue * 100).toString();
+    this.el.volume.value = Math.round(sliderValue * 100);
   }
 
   private setVolume(volume: number): void {
@@ -676,7 +679,7 @@ export class PlayerController {
     if (this.soundTouchNode) {
       this.soundTouchNode.playbackRate.value = normalizedRate;
     }
-    this.el.speed.value = normalizedRate.toString();
+    this.el.speed.value = normalizedRate;
     this.el.speedValue.textContent = `${normalizedRate.toFixed(2)}x`;
   }
 
@@ -687,7 +690,7 @@ export class PlayerController {
       this.soundTouchNode.pitchSemitones.value = normalizedValue;
       this.soundTouchNode.pitch.value = 1;
     }
-    this.el.pitch.value = normalizedValue.toString();
+    this.el.pitch.value = normalizedValue;
     this.el.pitchValue.textContent = formatPitchLabel(normalizedValue);
   }
 

@@ -22,19 +22,19 @@ templ PlaylistPage(data PlaylistPageData) {
 }
 
 templ PlaylistContent(data PlaylistPageData) {
-  <div style="display: flex; flex-direction: column; gap: 10px;">
+  <div class="wa-stack">
     <div>
       <a href="/?tab=playlists">← Playlists</a>
     </div>
-    <fieldset>
-      <legend>
+    <wa-card class="page-card">
+      <h2 slot="header">
         if data.Playlist.Name != "" {
           { data.Playlist.Name }
         } else {
           Playlist
         }
-      </legend>
-      <div style="display: flex; flex-wrap: wrap; gap: 16px; color: #555; font-size: 0.85rem; margin-bottom: 8px;">
+      </h2>
+      <div class="wa-cluster playlist-meta muted">
         if data.Playlist.Description != nil && *data.Playlist.Description != "" {
           <span>{ *data.Playlist.Description }</span>
         }
@@ -46,10 +46,10 @@ templ PlaylistContent(data PlaylistPageData) {
           }() }</span>
       </div>
       if len(data.Tracks) == 0 {
-        <p style="color: #666; margin: 0;">This playlist is empty. Use the <a href="/?tab=tracks">track library</a> to add tracks.</p>
+        <p class="muted">This playlist is empty. Use the <a href="/?tab=tracks">track library</a> to add tracks.</p>
       } else {
-        <div style="overflow-x: auto;">
-          <table style="width: 100%;">
+        <div class="table-scroll">
+          <table class="data-table">
             <thead>
               <tr>
                 <th class="col-added">#</th>
@@ -63,72 +63,32 @@ templ PlaylistContent(data PlaylistPageData) {
             <tbody>
               for _, item := range data.Tracks {
                 <tr>
-                  <td class="col-added" style="color: #666;">{ strconv.Itoa(item.Position + 1) }</td>
+                  <td class="col-added muted">{ strconv.Itoa(item.Position + 1) }</td>
                   <td>
-                    <button
-                      type="button"
-                      class="btn-primary"
-                      data-action="play-track"
-                      data-queue-group={ "playlist-" + strconv.FormatInt(data.Playlist.ID, 10) }
-                      data-track-id={ strconv.FormatInt(item.Track.ID, 10) }
-                      data-track-url={ "/media/" + strconv.FormatInt(item.Track.ID, 10) }
-                      data-track-title={ item.Track.Title }
-                      data-track-artist={ func() string {
-                        if item.Track.Artist != nil { return *item.Track.Artist }
-                        return ""
-                      }() }
-                      data-track-album={ func() string {
-                        if item.Track.Album != nil { return *item.Track.Album }
-                        return ""
-                      }() }
-                      data-track-duration={ func() string {
-                        if item.Track.DurationSeconds != nil { return strconv.Itoa(*item.Track.DurationSeconds) }
-                        return ""
-                      }() }
-                    >▶</button>
-                    <button
-                      type="button"
-                      data-action="queue-track"
-                      data-queue-group={ "playlist-" + strconv.FormatInt(data.Playlist.ID, 10) }
-                      data-track-id={ strconv.FormatInt(item.Track.ID, 10) }
-                      data-track-url={ "/media/" + strconv.FormatInt(item.Track.ID, 10) }
-                      data-track-title={ item.Track.Title }
-                      data-track-artist={ func() string {
-                        if item.Track.Artist != nil { return *item.Track.Artist }
-                        return ""
-                      }() }
-                      data-track-album={ func() string {
-                        if item.Track.Album != nil { return *item.Track.Album }
-                        return ""
-                      }() }
-                      data-track-duration={ func() string {
-                        if item.Track.DurationSeconds != nil { return strconv.Itoa(*item.Track.DurationSeconds) }
-                        return ""
-                      }() }
-                    >+Queue</button>
+                    @TrackControls(item.Track, "playlist-"+strconv.FormatInt(data.Playlist.ID, 10))
                   </td>
                   <td><strong>{ item.Track.Title }</strong></td>
                   <td class="col-artist">
                     if item.Track.Artist != nil {
                       { *item.Track.Artist }
                     } else {
-                      <span style="color: #999;">—</span>
+                      <span class="muted">—</span>
                     }
                   </td>
                   <td class="col-album">
                     if item.Track.Album != nil {
                       { *item.Track.Album }
                     } else {
-                      <span style="color: #999;">—</span>
+                      <span class="muted">—</span>
                     }
                   </td>
-                  <td class="col-added" style="white-space: nowrap; color: #666; font-size: 0.85rem;">{ item.AddedAt.Format("2006-01-02") }</td>
+                  <td class="col-added nowrap muted">{ item.AddedAt.Format("2006-01-02") }</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
       }
-    </fieldset>
+    </wa-card>
   </div>
 }
